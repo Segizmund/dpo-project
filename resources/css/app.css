@@ -1,0 +1,42 @@
+@font-face {
+    font-family: 'TT Travels';
+    src: url('../fonts/TTTravels-Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'TT Travels';
+    src: url('../fonts/TTTravels-Medium.ttf') format('truetype');
+    font-weight: 500; 
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'TT Travels';
+    src: url('../fonts/TTTravels-DemiBold.ttf') format('truetype');
+    font-weight: 600; 
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'TT Travels';
+    src: url('../fonts/TTTravels-Bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body{
+    font-family: 'TT Travels';
+}
+
+#CoursesSlider::-webkit-scrollbar { display: none; }
+#CoursesSlider { -ms-overflow-style: none; scrollbar-width: none; }
