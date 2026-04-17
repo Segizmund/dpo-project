@@ -1,4 +1,4 @@
-import { Head, usePage, Link } from '@inertiajs/react';
+import {usePage, Link } from '@inertiajs/react';
 import { useState, useMemo, useEffect } from 'react';
 import PageLayout from '@/Layouts/PageLayout';
 import CategoryItem from '@/Components/CategoryItem';
@@ -181,7 +181,6 @@ const Webinars = ({seo}) => {
                 <aside className='flex flex-col gap-8'>
                     {/* БЛОК КАТЕГОРИЙ */}
                     <div className='border-b border-black pb-8'>
-                        {/* Заголовок-кнопка для сворачивания всего блока */}
                         <button 
                             onClick={() => setIsCatsOpen(!isCatsOpen)}
                             className='flex items-center justify-between w-full text-left mb-4 group'
@@ -199,12 +198,9 @@ const Webinars = ({seo}) => {
                         <div className={`grid transition-all duration-300 ease-in-out ${isCatsOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
                             <div className="overflow-hidden">
                                 <div className='flex flex-col gap-4'>
-                                    {/* Список первых элементов */}
                                     {categories.slice(0, limit).map(cat => (
                                         <CategoryItem key={cat.id} item={cat} selected={selectedCategories} toggle={toggleCategory} />
                                     ))}
-
-                                    {/* Вложенный список "Показать еще" */}
                                     <div className={`grid transition-all duration-300 ease-linear ${showAllCats ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
                                         <div className="overflow-hidden">
                                             <div className='flex flex-col gap-4 pt-4'>
@@ -215,7 +211,6 @@ const Webinars = ({seo}) => {
                                         </div>
                                     </div>
 
-                                    {/* Кнопка "Еще тематик" */}
                                     {categories.length > limit && (
                                         <button onClick={() => setShowAllCats(!showAllCats)} className="mt-2 font-bold hover:text-[#A621F3] flex items-center gap-2 text-sm">
                                             {showAllCats ? 'Скрыть' : `Еще ${categories.length - limit}`}
@@ -291,7 +286,7 @@ const Webinars = ({seo}) => {
                         {visibleWebinars.map(webinar => {
                             const speaker = testSpeakers.find(s => s.id === webinar.speaker_id);
                             return (
-                                <div key={webinar.id} className='flex flex-col justify-between gap-2 group cursor-pointer animate-in fade-in slide-in-from-bottom-4 duration-500'>
+                                <Link href={route('webinar.show', webinar.id)} key={webinar.id} className='flex flex-col justify-between gap-2 group cursor-pointer animate-in fade-in slide-in-from-bottom-4 duration-500'>
                                     <div className='flex flex-col gap-4 '>
                                         <div className='relative rounded-2xl overflow-hidden aspect-video bg-gray-100'>
                                             <img src={webinar.image} alt={webinar.title} className='object-cover w-full h-full group-hover:scale-105 transition duration-500' />
@@ -313,7 +308,7 @@ const Webinars = ({seo}) => {
                                             <span className='font-semibold'>{speaker.name}</span>
                                         </div>
                                     )}
-                                </div>
+                                </Link>
                             );
                         })}
                     </div>

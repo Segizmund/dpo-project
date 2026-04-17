@@ -55,7 +55,7 @@ export default function CustomSelect({ label, items, isHome, value, onSelect, cl
                                 key={index}
                                 href={item.href}
                                 onClick={() => setIsOpen(false)}
-                                className={`${url === item.href ? 'bg-purple-50 border-[#A621F3] text-[#A621F3]' : ''} block px-5 py-3 text-sm hover:bg-purple-50 hover:text-[#A621F3] transition-colors`}
+                                className={`${isHome === true ? 'text-black' : ''} ${url === item.href ? 'bg-purple-50 border-[#A621F3] text-[#A621F3]' : ''} block px-5 py-3 text-sm hover:bg-purple-50 hover:text-[#A621F3] transition-colors`}
                             >
                                 {item.label}
                             </Link>

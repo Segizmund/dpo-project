@@ -21,7 +21,7 @@ export default function Header({isHome}) {
                     </div>
                     
                     <div>
-                        <Link href={'courses'} className={`${url === '/courses' ? 'bg-[#A621F3] border-[#A621F3] text-white' : ''} hidden lg:flex items-center gap-2 border rounded-full py-2.5 px-4 font-medium transition duration-300 ease-linear hover:opacity-60 ${isHome ? 'border-white' : ''}`}>
+                        <Link href={route('courses')} className={`${url === '/courses' ? 'bg-[#A621F3] border-[#A621F3] text-white' : ''} hidden lg:flex items-center gap-2 border rounded-full py-2.5 px-4 font-medium transition duration-300 ease-linear hover:opacity-60 ${isHome ? 'border-white' : ''}`}>
                             <div>
                                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M17.5 4.16699H2.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -63,7 +63,7 @@ export default function Header({isHome}) {
                         </svg>
                     </button>
                 </div>
-
+                {/* Мобильное меню */}
                 <div className={`
                     fixed top-0 right-0 h-full w-full max-w-sm bg-white shadow-xl z-50
                     transform transition-transform duration-300 ease-in-out
@@ -83,7 +83,7 @@ export default function Header({isHome}) {
                         </div>
 
                         <div className="flex flex-col px-6 gap-2">
-                            <Link className={`flex items-center gap-2 border rounded-full py-2.5 px-4 font-medium ${isHome ? 'border-white' : ''}`}>
+                            <Link href={route('courses')} className={`flex items-center gap-2 border rounded-full py-2.5 px-4 font-medium ${isHome ? 'border-white' : ''}`}>
                                 <div>
                                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                                         <path d="M17.5 4.16699H2.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -98,11 +98,11 @@ export default function Header({isHome}) {
                                 </div>
                             </Link>
                             
-                            <Link className={`flex rounded-full py-2.5 px-4 font-medium`}>
+                            <Link href={route('about-us')} className={`flex rounded-full py-2.5 px-4 font-medium`}>
                                 О нас
                             </Link>
 
-                            <Link className={`flex rounded-full py-2.5 px-4 font-medium`}>
+                            <Link href={route('contacts')} className={`flex rounded-full py-2.5 px-4 font-medium`}>
                                 Контакты
                             </Link>
                             

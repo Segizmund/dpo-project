@@ -5,6 +5,7 @@ import SubscribeBox from '@/Components/SubscribeBox';
 import CourseBox from '@/Components/CourseBox';
 import CustomSelect from '@/Components/CustomSelect';
 import SeoTags from '@/Components/Seo/SeoTags';
+import ModalHelps from '@/Components/ModalHelps';
 
 const Courses = ({seo}) => {
     const [searchQuery, setSearchQuery] = useState('');
@@ -22,6 +23,12 @@ const Courses = ({seo}) => {
     const [coursesLimit, setCoursesLimit] = useState(COURSES_PER_PAGE);
 
     const [isCatsOpen, setIsCatsOpen] = useState(true);
+
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+    };
 
     const categories = [
         { id: 'dev', label: 'Программирование' },
@@ -307,9 +314,10 @@ const Courses = ({seo}) => {
                                                 </span>
                                             </div>
                                             <div>
-                                                <Link className='flex py-2.5 px-4 rounded-lg transition duration-300 ease-linear font-medium border border-black hover:bg-[#A621F3] hover:text-white hover:border-[#A621F3]'>
+                                                <button onClick={() => setIsModalOpen(true)}
+                                                 className='flex py-2.5 px-4 rounded-lg transition duration-300 ease-linear font-medium border border-black hover:bg-[#A621F3] hover:text-white hover:border-[#A621F3]'>
                                                     Нужна помощь
-                                                </Link>
+                                                </button>
                                             </div>
                                         </div>
                                     )}
@@ -324,20 +332,20 @@ const Courses = ({seo}) => {
                                         <div key={cat.id}>
                                             <h4 className='font-bold text-2xl'>{cat.label}</h4>
                                         </div>
-                                        <span>/</span>
+                                        <span>/1</span>
                                     </>
                                 ))}
                             </div>
                             <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8'>
                                 {visibleWebinars.map(webinar => (
-                                    <div key={webinar.id} className='flex flex-col justify-between gap-2 group cursor-pointer animate-in fade-in slide-in-from-bottom-4 duration-500'>
+                                    <Link href={route('course.show', webinar.id)} key={webinar.id} className='flex flex-col justify-between gap-2 group cursor-pointer animate-in fade-in slide-in-from-bottom-4 duration-500'>
                                         <div className='flex flex-col gap-4 '>
                                             <div className='relative rounded-2xl overflow-hidden aspect-video bg-gray-100'>
                                                 <img src={webinar.image} alt={webinar.title} className='object-cover w-full h-full group-hover:scale-105 transition duration-500' />
                                             </div>
                                             <h4 className='font-medium leading-tight group-hover:text-[#A621F3] transition'>{webinar.title}</h4>
                                         </div>
-                                    </div>
+                                    </Link>
                                 ))}
                             </div>
 
@@ -363,6 +371,9 @@ const Courses = ({seo}) => {
                 </main>
                 <SubscribeBox/>
             </div>
+            {isModalOpen && (
+                <ModalHelps onClose={handleCloseModal} />
+            )}
         </>
     );
 };

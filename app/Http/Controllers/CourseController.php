@@ -70,6 +70,26 @@ class CourseController extends Controller
         ]);
     }
 
+    public function courseShow(Request $request)
+    {
+        return Inertia::render('CourseShow', [
+            'seo' => [
+                'title' => 'Каталог всех курсов',
+                'description' => 'Выберите подходящий курс: от разработки на Laravel до инклюзивного образования.',
+            ]
+        ]);
+    }
+
+    public function webinarShow(Request $request)
+    {
+        return Inertia::render('WebinarShow', [
+            'seo' => [
+                'title' => 'Каталог всех курсов',
+                'description' => 'Выберите подходящий курс: от разработки на Laravel до инклюзивного образования.',
+            ]
+        ]);
+    }
+
     public function contacts()
     {
         return Inertia::render('Contacts', [

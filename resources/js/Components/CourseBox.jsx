@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect } from 'react';
+import { Link } from '@inertiajs/react';
 
 export default function CourseBox({group})
 {
@@ -46,7 +47,7 @@ export default function CourseBox({group})
                 className='flex overflow-x-auto relative gap-6 scrollbar-hide snap-x snap-mandatory'>
 
                 {group.courses.map(course => (
-                    <div
+                    <Link href={route('course.show', course.id)}
                         key={course.id} 
                         className='slider-card relative snap-start flex-none w-[100%] sm:w-[48%] md:w-[31%] xl:w-[31.5%] 2xl:w-[32%] flex flex-col gap-4 group cursor-pointer'
                     >
@@ -70,7 +71,7 @@ export default function CourseBox({group})
                                 {course.duration}
                             </span>
                         </div>
-                    </div>
+                    </Link>
                 ))}
             </div>
             <div className='flex absolute -bottom-7 items-center justify-between w-full gap-1 p-1 rounded-full'>
