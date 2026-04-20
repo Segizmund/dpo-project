@@ -10,27 +10,42 @@ use Illuminate\Support\Facades\Cache;
 
 class CourseController extends Controller
 {
+    protected $config;
+
+    public function __construct()
+    {
+        $this->config = config('services.external_api');
+    }
+
     public function index(Request $request)
     {
         $limit = $request->input('limit', 9);
-        $config = Config::get('services.external_api');
 
-        /*$externalData = Cache::remember("webinars_list_{$limit}", 300, function () use ($config, $limit) {
-            $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $config['key'],  // 'X-API-KEY' => $config['key']
-                'Accept' => 'application/json',
-            ])->get($config['url'], [
-                'per_page' => $limit,
-            ]);
+       try {
+               $response = Http::withoutVerifying()
+                   ->timeout(30)
+                   ->withHeaders([
+                       'X-API-KEY' => $this->config['key'],
+                       'Accept'    => 'application/json',
+                   ])->get($this->config['url'] . '/course/public');
 
-            return $response->json() ?? ['data' => [], 'total' => 0];
-        });*/
+               if ($response->failed()) {
+                    $externalData = [
+                        'status' => 'error',
+                        'code' => $response->status(),
+                        'body' => $response->body()
+                    ];
+               } else {
+                    $externalData = $response->json() ?? $response->body();
+               }
+
+        } catch (\Exception $e) {
+            $externalData = ['status' => 'error', 'message' => $e->getMessage()];
+        }
 
 
         return Inertia::render('Welcome', [
-            /*'webinars' => $externalData['data'] ?? [],
-            'totalCount' => $externalData['total'] ?? 0,
-            'currentLimit' => (int) $limit,*/
+            'apiStatus' => $externalData,
             'seo' => [
                 'title' => 'Главная',
                 'description' => 'Добро пожаловать на платформу дополнительного профессионального образования. Обучаем IT-профессиям и современным методикам педагогики.',
@@ -40,12 +55,36 @@ class CourseController extends Controller
 
     public function webinars_free(Request $request)
     {
+        $cursor = $request->input('cursor'); 
+        $limit = $request->input('limit', 3);
+
+        try {
+            $response = Http::withoutVerifying()
+                ->timeout(10)
+                ->withHeaders([
+                    'X-API-KEY' => $this->config['key'],
+                    'Accept'    => 'application/json',
+                ])->get($this->config['url'] . '/webinar/public/', [
+                    'limit' => (int) $limit,
+                    'next_cursor' => $cursor,
+                ]);
+
+            $data = $response->successful() 
+                ? $response->json() 
+                : ['webinars' => [], 'next_cursor' => null];
+
+        } catch (\Exception $e) {
+            \Log::error("Webinars API Error: " . $e->getMessage());
+            $data = ['webinars' => [], 'next_cursor' => null];
+        }
+
         return Inertia::render('Webinars', [
-            'seo' => [
+            'webinars'   => $data['webinars'] ?? [],
+            'nextCursor' => $data['next_cursor'] ?? null,
+            'seo' => fn() => [
                 'title' => 'Бесплатные вебинары',
-                'description' => 'Смотрите бесплатные уроки от экспертов. Разбираем вход в IT, новые фишки Laravel и методы цифрового образования.',
+                'description' => 'Смотрите бесплатные уроки от экспертов.',
             ],
-            'type' => 'free'
         ]);
     }
 
@@ -59,7 +98,7 @@ class CourseController extends Controller
             'type' => 'paid'
         ]);
     }
-    
+
     public function courses(Request $request)
     {
         return Inertia::render('Courses', [
@@ -96,7 +135,7 @@ class CourseController extends Controller
             'seo' => [
                 'title' => 'Контакты',
                 'description' => 'Контакты для свзяи с ДПО.',
-            ] 
+            ]
         ]);
     }
 

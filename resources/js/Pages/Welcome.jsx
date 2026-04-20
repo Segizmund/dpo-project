@@ -1,5 +1,5 @@
 import { Link, router } from '@inertiajs/react';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import HomeLayout from '@/Layouts/HomeLayout';
 import { useSliderAnimation } from '@/utils/sliderAnimation';
 import DynamicSection from '@/Components/DynamicSection';
@@ -7,7 +7,7 @@ import CoursesSlider from '@/Components/CoursesSlider';
 import SeoTags from '@/Components/Seo/SeoTags';
 import ModalHelps from '@/Components/ModalHelps';
 
-const Welcome = ({seo}) => {
+const Welcome = ({seo,apiStatus}) => {
     const [sectionVision, setSectionVision] = useState('btn-first');
     const [activeButtonId, setActiveButtonId] = useState('btn-first');
     const [accepted, setAccepted] = useState(false);
@@ -18,11 +18,11 @@ const Welcome = ({seo}) => {
     const handleCloseModal = () => {
         setIsModalOpen(false);
     };
-    
+
     const parentRef = useRef(null);
-    
+
     const { slideBackground, resetBackground } = useSliderAnimation(parentRef, activeButtonId);
-    
+
     const handleClick = (id) => {
         setActiveButtonId(id);
         setSectionVision(id);
@@ -37,6 +37,12 @@ const Welcome = ({seo}) => {
             onFinish: () => setIsLoading(false),
         });
     };
+
+    useEffect(() => {
+        if (apiStatus) {
+            console.log('Данные из API обновились:', apiStatus);
+        }
+    }, [apiStatus]);
 
     return (
         <>
@@ -146,66 +152,66 @@ const Welcome = ({seo}) => {
                             </div>
                             <span className='font-medium'>Карьера</span>
                         </Link>
-                        <button className='flex items-center gap-2 bg-black text-white py-2.5 px-4 rounded-full hover:bg-white hover:text-black transition duration-300 ease-linear hover:-translate-y-1 font-medium' 
+                        <button className='flex items-center gap-2 bg-black text-white py-2.5 px-4 rounded-full hover:bg-white hover:text-black transition duration-300 ease-linear hover:-translate-y-1 font-medium'
                         onClick={() => setIsModalOpen(true)}>Помогите выбрать</button>
                     </div>
                 </div>
             </div>
             <div className='container px-2.5 2xl:px-0 mx-auto pt-10 md:pt-36'>
                 <h3 className='text-4xl md:text-6xl font-bold text-center mb-16'>Более 1000 программ <br /> для карьеры и жизни</h3>
-                <div ref={parentRef} className='relative bg-[#EFEFEF] rounded-3xl lg:rounded-full flex flex-col lg:flex-row items-center mb-12 w-full px-6 lg:px-12'> 
-                    <span 
+                <div ref={parentRef} className='relative bg-[#EFEFEF] rounded-3xl lg:rounded-full flex flex-col lg:flex-row items-center mb-12 w-full px-6 lg:px-12'>
+                    <span
                         id="sliding-bg"
                         className='absolute pointer-events-none top-0 left-0 bg-black rounded-full transition-all duration-300 ease-in-out hidden lg:flex h-full z-0'
                         style={{
                             willChange: 'transform, width'
                         }}
                     />
-                    
-                    <button 
-                        id="btn-first" 
-                        className='relative flex justify-center py-4 px-12 rounded-3xl lg:rounded-full z-10 transition duration-300 ease-linear w-full' 
+
+                    <button
+                        id="btn-first"
+                        className='relative flex justify-center py-4 px-12 rounded-3xl lg:rounded-full z-10 transition duration-300 ease-linear w-full'
                         onClick={() => {
                             handleClick('btn-first');
                         }}
-                        onMouseEnter={() => slideBackground('btn-first')} 
+                        onMouseEnter={() => slideBackground('btn-first')}
                         onMouseLeave={resetBackground}
                     >
                         <span className='font-semibold text-lg 2xl:text-xl transition-colors duration-300'>Часто выбирают</span>
                     </button>
 
-                    <button 
-                        id="btn-second" 
-                        className='relative flex justify-center py-4 px-12 rounded-3xl lg:rounded-full z-10 transition duration-300 ease-linear  w-full' 
+                    <button
+                        id="btn-second"
+                        className='relative flex justify-center py-4 px-12 rounded-3xl lg:rounded-full z-10 transition duration-300 ease-linear  w-full'
                         onClick={() => {
                             handleClick('btn-second');
                         }}
-                        onMouseEnter={() => slideBackground('btn-second')} 
+                        onMouseEnter={() => slideBackground('btn-second')}
                         onMouseLeave={resetBackground}
                     >
                         <span className='font-semibold text-lg 2xl:text-xl transition-colors duration-300'>Войти в IT с нуля</span>
                     </button>
 
-                    <button 
-                        id="btn-third" 
-                        className='relative flex justify-center py-4 px-12 rounded-3xl lg:rounded-full z-10 transition duration-300 ease-linear  w-full' 
+                    <button
+                        id="btn-third"
+                        className='relative flex justify-center py-4 px-12 rounded-3xl lg:rounded-full z-10 transition duration-300 ease-linear  w-full'
                         onClick={() => {
                             handleClick('btn-third');
                         }}
-                        onMouseEnter={() => slideBackground('btn-third')} 
+                        onMouseEnter={() => slideBackground('btn-third')}
                         onMouseLeave={resetBackground}
                     >
                         <span className='font-semibold text-lg 2xl:text-xl transition-colors duration-300'>Освоить навык</span>
                     </button>
 
-                    <button 
-                        id="btn-fourth" 
-                        className='relative flex justify-center py-4 px-12 rounded-3xl lg:rounded-full z-10 transition duration-300 ease-linear  w-full' 
+                    <button
+                        id="btn-fourth"
+                        className='relative flex justify-center py-4 px-12 rounded-3xl lg:rounded-full z-10 transition duration-300 ease-linear  w-full'
                         onClick={() => {
                             handleClick('btn-fourth');
                             setIsModalOpen(true);
                         }}
-                        onMouseEnter={() => slideBackground('btn-fourth')} 
+                        onMouseEnter={() => slideBackground('btn-fourth')}
                         onMouseLeave={resetBackground}
                     >
                         <span className='font-semibold text-lg 2xl:text-xl transition-colors duration-300'>Помогите выбрать</span>
@@ -269,10 +275,10 @@ const Welcome = ({seo}) => {
                                             </div>
                                         </div>
                                         <div className='flex items-center gap-3 cursor-pointer'>
-                                            <input 
+                                            <input
                                                 id="privacy"
                                                 name='privacy'
-                                                type="checkbox" 
+                                                type="checkbox"
                                                 checked={accepted}
                                                 onChange={(e) => setAccepted(e.target.checked)}
                                                 className='w-5 h-5 rounded border-black text-[#A621F3] focus:ring-[#A621F3] cursor-pointer'
@@ -283,12 +289,12 @@ const Welcome = ({seo}) => {
                                         </div>
                                     </div>
                                     <div className='flex flex-col gap-4'>
-                                        <button 
+                                        <button
                                             type="submit"
                                             disabled={!accepted}
-                                            className={`w-fit py-4 px-12 rounded-xl font-bold text-white transition-all duration-300 
-                                                ${accepted 
-                                                    ? 'bg-[#A621F3] hover:opacity-85 hover:scale-105 transition duration-300 ease-linear' 
+                                            className={`w-fit py-4 px-12 rounded-xl font-bold text-white transition-all duration-300
+                                                ${accepted
+                                                    ? 'bg-[#A621F3] hover:opacity-85 hover:scale-105 transition duration-300 ease-linear'
                                                     : 'bg-gray-400 cursor-not-allowed'
                                                 }`}
                                         >
@@ -298,10 +304,10 @@ const Welcome = ({seo}) => {
                                             Нажимая на кнопку, я соглашаюсь с правилами пользования Платформой
                                         </p>
                                         <div className='flex items-center gap-3 cursor-pointer'>
-                                            <input 
+                                            <input
                                                 id="advertisement"
                                                 name='advertisement'
-                                                type="checkbox" 
+                                                type="checkbox"
                                                 className='w-5 h-5 rounded border-black text-[#A621F3] focus:ring-[#A621F3] cursor-pointer'
                                             />
                                             <label htmlFor="advertisement" className='leading-tight cursor-pointer font-medium select-none'>

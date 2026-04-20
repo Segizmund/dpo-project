@@ -1,4 +1,5 @@
-import {usePage, Link } from '@inertiajs/react';
+import {usePage, Link, router} from '@inertiajs/react';
+import axios from 'axios';
 import { useState, useMemo, useEffect } from 'react';
 import PageLayout from '@/Layouts/PageLayout';
 import CategoryItem from '@/Components/CategoryItem';
@@ -6,7 +7,35 @@ import SpeakerItem from '@/Components/SpeakerItem';
 import SubscribeBox from '@/Components/SubscribeBox';
 import SeoTags from '@/Components/Seo/SeoTags';
 
-const Webinars = ({seo}) => {
+const categories = [
+    { id: 'dev', label: 'Программирование' },
+    { id: 'design', label: 'Дизайн' },
+    { id: 'marketing', label: 'Маркетинг' },
+    { id: 'pedagogy', label: 'Педагогика' },
+    { id: 'management', label: 'Менеджмент' },
+    { id: 'spo', label: 'СПО' },
+    { id: 'pre-courses', label: 'Подготовительные курсы' },
+    { id: 'economy', label: 'Экономика' },
+    { id: 'fpv', label: 'Разработка FPV' },
+    { id: 'agriculture', label: 'Земледелие' },
+];
+
+const testSpeakers = [
+    { id: 1, name: 'Максим Варава'},
+    { id: 2, name: 'Анна Сидорова'},
+    { id: 3, name: 'Иван Петров'},
+    { id: 4, name: 'Елена Кузнецова'},
+    { id: 5, name: 'Артем Соколов'},
+    { id: 6, name: 'Дмитрий Волков'},
+];
+
+
+const Webinars = ({seo, webinars, nextCursor,}) => {
+    console.log(webinars)
+    const [list, setList] = useState(webinars);
+    const [loading, setLoading] = useState(false);
+    const [currentCursor, setCurrentCursor] = useState(nextCursor);
+    
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategories, setSelectedCategories] = useState([]);
     const [selectedSpeakers, setSelectedSpeakers] = useState([]);
@@ -24,43 +53,6 @@ const Webinars = ({seo}) => {
     const [isCatsOpen, setIsCatsOpen] = useState(true);
     const [isSpeakersOpen, setIsSpeakersOpen] = useState(true);
 
-    const categories = [
-        { id: 'dev', label: 'Программирование' },
-        { id: 'design', label: 'Дизайн' },
-        { id: 'marketing', label: 'Маркетинг' },
-        { id: 'pedagogy', label: 'Педагогика' },
-        { id: 'management', label: 'Менеджмент' },
-        { id: 'spo', label: 'СПО' },
-        { id: 'pre-courses', label: 'Подготовительные курсы' },
-        { id: 'economy', label: 'Экономика' },
-        { id: 'fpv', label: 'Разработка FPV' },
-        { id: 'agriculture', label: 'Земледелие' },
-    ];
-
-    const testWebinars = [
-        { id: 1, category_id: 'dev', speaker_id: 1, title: 'Как войти в IT в 2026 году', duration: '1:59:00', image: '/img/slide-1.png' },
-        { id: 2, category_id: 'design', speaker_id: 2, title: 'Основы UI/UX: от сетки до прототипа', duration: '1:20:00', image: '/img/slide-1.png' },
-        { id: 3, category_id: 'marketing', speaker_id: 3, title: 'Маркетинг в соцсетях без бюджета', duration: '2:15:00', image: '/img/slide-1.png' },
-        { id: 4, category_id: 'dev', speaker_id: 1, title: 'React vs Vue: что учить новичку?', duration: '1:45:00', image: '/img/slide-1.png' },
-        { id: 5, category_id: 'pedagogy', speaker_id: 4, title: 'Цифровые инструменты в образовании', duration: '1:10:00', image: '/img/slide-1.png' },
-        { id: 6, category_id: 'dev', speaker_id: 1, title: 'Node.js для начинающих', duration: '2:30:00', image: '/img/slide-1.png' },
-        { id: 7, category_id: 'design', speaker_id: 2, title: 'Типографика и сетки в вебе', duration: '0:45:00', image: '/img/slide-1.png' },
-        { id: 8, category_id: 'marketing', speaker_id: 3, title: 'SEO продвижение для малого бизнеса', duration: '3:05:00', image: '/img/slide-1.png' },
-        { id: 9, category_id: 'dev', speaker_id: 1, title: 'TypeScript: полное руководство', duration: '4:20:00', image: '/img/slide-1.png' },
-        { id: 10, category_id: 'pedagogy', speaker_id: 4, title: 'Инклюзивное образование в школах', duration: '1:55:00', image: '/img/slide-1.png' },
-        { id: 11, category_id: 'design', speaker_id: 2, title: '3D моделирование в Blender', duration: '2:10:00', image: '/img/slide-1.png' },
-        { id: 12, category_id: 'dev', speaker_id: 1, title: 'Laravel 11: что нового?', duration: '1:30:00', image: '/img/slide-1.png' },
-    ];
-
-    const testSpeakers = [
-        { id: 1, name: 'Максим Варава'},
-        { id: 2, name: 'Анна Сидорова'},
-        { id: 3, name: 'Иван Петров'},
-        { id: 4, name: 'Елена Кузнецова'},
-        { id: 5, name: 'Артем Соколов'},
-        { id: 6, name: 'Дмитрий Волков'},
-    ];
-
     const toggleCategory = (id) => {
         setSelectedCategories(prev => 
             prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
@@ -73,25 +65,52 @@ const Webinars = ({seo}) => {
         );
     };
 
-    const handleShowMore = () => {
-        setWebinarsLimit(prev => prev + 6);
-    };
-
     const filteredWebinars = useMemo(() => {
-        setWebinarsLimit(WEBINARS_PER_PAGE);
-
-        return testWebinars.filter(webinar => {
+        return list.filter(webinar => {
             const matchesCategory = selectedCategories.length === 0 || 
                                     selectedCategories.includes(webinar.category_id);
 
             const matchesSpeaker = selectedSpeakers.length === 0 || 
-                                selectedSpeakers.includes(webinar.speaker_id);
+                                   selectedSpeakers.includes(webinar.speaker_id);
             
-            const matchesSearch = webinar.title.toLowerCase().includes(searchQuery.toLowerCase());
+            const title = webinar.title || '';
+            const matchesSearch = title.toLowerCase().includes(searchQuery.toLowerCase());
 
             return matchesCategory && matchesSpeaker && matchesSearch;
         });
-    }, [selectedCategories, selectedSpeakers, searchQuery]);
+    }, [list, selectedCategories, selectedSpeakers, searchQuery]);
+
+    const handleLoadMore = async () => {
+        if (!currentCursor || loading) return;
+        setLoading(true);
+
+        try {
+            const response = await axios.get(window.location.pathname, {
+                params: { cursor: currentCursor },
+                headers: {
+                    'X-Inertia': 'true',
+                    'X-Inertia-Partial-Data': 'webinars,nextCursor',
+                    'X-Inertia-Partial-Component': 'Webinars'
+                }
+            });
+
+            const { webinars: newWebinars, nextCursor: newCursor } = response.data.props;
+
+            if (newWebinars && newWebinars.length > 0) {
+                setList(prev => {
+                    const existingIds = new Set(prev.map(item => item.id));
+                    const uniqueNew = newWebinars.filter(item => !existingIds.has(item.id));
+                    return [...prev, ...uniqueNew];
+                });
+            }
+            
+            setCurrentCursor(newCursor);
+        } catch (error) {
+            console.error("Ошибка загрузки вебинаров:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const visibleCategories = showAllCats ? categories : categories.slice(0, limit);
     const visibleWebinars = filteredWebinars.slice(0, webinarsLimit);
@@ -120,6 +139,11 @@ const Webinars = ({seo}) => {
         return () => window.removeEventListener('resize', handleLayout);
         
     }, [searchQuery]);
+
+    useEffect(() => {
+        setList(webinars);
+        setCurrentCursor(nextCursor);
+    }, [webinars]);
 
     return (
         <>
@@ -314,10 +338,11 @@ const Webinars = ({seo}) => {
                     </div>
 
                     {/* Кнопка подгрузки */}
-                    {filteredWebinars.length > webinarsLimit && (
+                    {currentCursor && (
                         <div className='flex justify-center mt-12'>
                             <button 
-                                onClick={() => setWebinarsLimit(prev => prev + WEBINARS_PER_PAGE)}
+                                onClick={handleLoadMore}
+                                disabled={loading}
                                 className='flex items-center gap-2 px-4 py-2.5 border border-black rounded-full font-bold hover:bg-[#A621F3] hover:text-white hover:border-[#A621F3] transition duration-300 ease-linear group'
                             >
                                 <svg className='group-hover:rotate-90 transition duration-300 ease-linear' width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
