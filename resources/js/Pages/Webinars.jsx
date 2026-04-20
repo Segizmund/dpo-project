@@ -20,16 +20,6 @@ const categories = [
     { id: 'agriculture', label: 'Земледелие' },
 ];
 
-const testSpeakers = [
-    { id: 1, name: 'Максим Варава'},
-    { id: 2, name: 'Анна Сидорова'},
-    { id: 3, name: 'Иван Петров'},
-    { id: 4, name: 'Елена Кузнецова'},
-    { id: 5, name: 'Артем Соколов'},
-    { id: 6, name: 'Дмитрий Волков'},
-];
-
-
 const Webinars = ({seo, webinars, nextCursor,}) => {
     console.log(webinars)
     const [list, setList] = useState(webinars);
@@ -65,15 +55,35 @@ const Webinars = ({seo, webinars, nextCursor,}) => {
         );
     };
 
+    const dynamicSpeakers = useMemo(() => {
+        const speakersMap = new Map();
+        
+        list.forEach(webinar => {
+            if (webinar.speakers && Array.isArray(webinar.speakers)) {
+                webinar.speakers.forEach(s => {
+                    // Используем Map, чтобы избежать дубликатов по ID
+                    if (!speakersMap.has(s.id)) {
+                        speakersMap.set(s.id, {
+                            id: s.id,
+                            name: `${s.first_name} ${s.last_name}`
+                        });
+                    }
+                });
+            }
+        });
+        
+        return Array.from(speakersMap.values());
+    }, [list]);
+
     const filteredWebinars = useMemo(() => {
         return list.filter(webinar => {
             const matchesCategory = selectedCategories.length === 0 || 
                                     selectedCategories.includes(webinar.category_id);
 
             const matchesSpeaker = selectedSpeakers.length === 0 || 
-                                   selectedSpeakers.includes(webinar.speaker_id);
+                               webinar.speakers?.some(s => selectedSpeakers.includes(s.id));
             
-            const title = webinar.title || '';
+            const title = webinar.name || '';
             const matchesSearch = title.toLowerCase().includes(searchQuery.toLowerCase());
 
             return matchesCategory && matchesSpeaker && matchesSearch;
@@ -265,26 +275,28 @@ const Webinars = ({seo, webinars, nextCursor,}) => {
                             </svg>
                         </button>
 
-                        <div className={`grid transition-all duration-300 ease-in-out ${isSpeakersOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+                        <div className={`grid transition-all duration-300 ${isSpeakersOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
                             <div className="overflow-hidden">
                                 <div className='flex flex-col gap-4'>
-                                    {testSpeakers.slice(0, limit).map(speaker => (
+                                    {dynamicSpeakers.slice(0, limit).map(speaker => (
                                         <SpeakerItem key={speaker.id} item={speaker} selected={selectedSpeakers} toggle={toggleSpeaker} />
                                     ))}
 
-                                    <div className={`grid transition-all duration-300 ease-linear ${showAllSpeak ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
-                                        <div className="overflow-hidden">
-                                            <div className='flex flex-col gap-4 pt-4'>
-                                                {testSpeakers.slice(limit).map(speaker => (
-                                                    <SpeakerItem key={speaker.id} item={speaker} selected={selectedSpeakers} toggle={toggleSpeaker} />
-                                                ))}
+                                    {dynamicSpeakers.length > limit && (
+                                        <div className={`grid transition-all duration-300 ${showAllSpeak ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+                                            <div className="overflow-hidden">
+                                                <div className='flex flex-col gap-4 pt-4'>
+                                                    {dynamicSpeakers.slice(limit).map(speaker => (
+                                                        <SpeakerItem key={speaker.id} item={speaker} selected={selectedSpeakers} toggle={toggleSpeaker} />
+                                                    ))}
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-
-                                    {testSpeakers.length > limit && (
+                                    )}
+                                    
+                                    {dynamicSpeakers.length > limit && (
                                         <button onClick={() => setShowAllSpeak(!showAllSpeak)} className="mt-2 font-bold hover:text-[#A621F3] flex items-center gap-2 text-sm">
-                                            {showAllSpeak ? 'Скрыть' : `Еще ${testSpeakers.length - limit}`}
+                                            {showAllSpeak ? 'Скрыть' : `Еще ${dynamicSpeakers.length - limit}`}
                                             <span className={`transform transition-transform duration-300 ${showAllSpeak ? '-rotate-180' : ''}`}>
                                                 <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                                                     <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round"/>
@@ -308,13 +320,18 @@ const Webinars = ({seo, webinars, nextCursor,}) => {
 
                     <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8'>
                         {visibleWebinars.map(webinar => {
-                            const speaker = testSpeakers.find(s => s.id === webinar.speaker_id);
                             return (
                                 <Link href={route('webinar.show', webinar.id)} key={webinar.id} className='flex flex-col justify-between gap-2 group cursor-pointer animate-in fade-in slide-in-from-bottom-4 duration-500'>
                                     <div className='flex flex-col gap-4 '>
                                         <div className='relative rounded-2xl overflow-hidden aspect-video bg-gray-100'>
-                                            <img src={webinar.image} alt={webinar.title} className='object-cover w-full h-full group-hover:scale-105 transition duration-500' />
-                                            <div className='absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-xl text-sm font-bold z-10'>{webinar.duration}</div>
+                                            {webinar.preview_url === 'dummy' ? (
+                                                <div className='absolute h-full w-full bg-gray-400'></div>
+                                            ) : (
+                                                <img src={webinar.image} alt={webinar.name} className='object-cover w-full h-full group-hover:scale-105 transition duration-500' />
+                                            )
+                                            
+                                            }
+                                            
                                             
                                             <div className='absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 p-5'>
                                                 <div className='absolute w-full h-full left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gray-500/20 backdrop-blur-sm'></div>
@@ -323,14 +340,18 @@ const Webinars = ({seo, webinars, nextCursor,}) => {
                                                 </svg>
                                             </div>
                                         </div>
-                                        <h4 className='font-medium leading-tight group-hover:text-[#A621F3] transition'>{webinar.title}</h4>
+                                        <h4 className='font-medium leading-tight group-hover:text-[#A621F3] transition'>{webinar.name}</h4>
                                     </div>
 
-                                    {speaker && (
-                                        <div className='flex items-center gap-2 text-sm'>
-                                            <span className='opacity-60'>Спикер</span>
-                                            <span className='font-semibold'>{speaker.name}</span>
-                                        </div>
+                                    {webinar.speakers && (
+                                        <>
+                                            {webinar.speakers.map((speaker, index) => (
+                                                <div key={speaker.id} className='flex items-center gap-2 text-sm'>
+                                                    <span className='opacity-60'>Спикер</span>
+                                                    <span className='font-semibold'>{speaker.first_name} {speaker.last_name}</span>
+                                                </div>
+                                            ))}
+                                        </>
                                     )}
                                 </Link>
                             );

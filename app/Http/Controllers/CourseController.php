@@ -27,7 +27,7 @@ class CourseController extends Controller
                    ->withHeaders([
                        'X-API-KEY' => $this->config['key'],
                        'Accept'    => 'application/json',
-                   ])->get($this->config['url'] . '/course/public');
+                   ])->get($this->config['url'] . '/health');
 
                if ($response->failed()) {
                     $externalData = [
