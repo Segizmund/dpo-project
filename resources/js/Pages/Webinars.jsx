@@ -6,6 +6,7 @@ import CategoryItem from '@/Components/CategoryItem';
 import SpeakerItem from '@/Components/SpeakerItem';
 import SubscribeBox from '@/Components/SubscribeBox';
 import SeoTags from '@/Components/Seo/SeoTags';
+import WebinarSkeleton from '@/Components/WebinarSkeleton';
 
 const categories = [
     { id: 'dev', label: 'Программирование' },
@@ -61,7 +62,6 @@ const Webinars = ({seo, webinars, nextCursor,}) => {
         list.forEach(webinar => {
             if (webinar.speakers && Array.isArray(webinar.speakers)) {
                 webinar.speakers.forEach(s => {
-                    // Используем Map, чтобы избежать дубликатов по ID
                     if (!speakersMap.has(s.id)) {
                         speakersMap.set(s.id, {
                             id: s.id,
@@ -83,8 +83,8 @@ const Webinars = ({seo, webinars, nextCursor,}) => {
             const matchesSpeaker = selectedSpeakers.length === 0 || 
                                webinar.speakers?.some(s => selectedSpeakers.includes(s.id));
             
-            const title = webinar.name || '';
-            const matchesSearch = title.toLowerCase().includes(searchQuery.toLowerCase());
+            const name = webinar.name || '';
+            const matchesSearch = name.toLowerCase().includes(searchQuery.toLowerCase());
 
             return matchesCategory && matchesSpeaker && matchesSearch;
         });
@@ -325,13 +325,11 @@ const Webinars = ({seo, webinars, nextCursor,}) => {
                                     <div className='flex flex-col gap-4 '>
                                         <div className='relative rounded-2xl overflow-hidden aspect-video bg-gray-100'>
                                             {webinar.preview_url === 'dummy' ? (
-                                                <div className='absolute h-full w-full bg-gray-400'></div>
-                                            ) : (
-                                                <img src={webinar.image} alt={webinar.name} className='object-cover w-full h-full group-hover:scale-105 transition duration-500' />
-                                            )
-                                            
+                                                    <div className='absolute h-full w-full bg-gray-400'></div>
+                                                ) : (
+                                                    <img src={webinar.image} alt={webinar.name} className='object-cover w-full h-full group-hover:scale-105 transition duration-500' />
+                                                )
                                             }
-                                            
                                             
                                             <div className='absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 p-5'>
                                                 <div className='absolute w-full h-full left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gray-500/20 backdrop-blur-sm'></div>
@@ -356,6 +354,13 @@ const Webinars = ({seo, webinars, nextCursor,}) => {
                                 </Link>
                             );
                         })}
+                        {loading && (
+                            <>
+                                <WebinarSkeleton />
+                                <WebinarSkeleton />
+                                <WebinarSkeleton />
+                            </>
+                        )}
                     </div>
 
                     {/* Кнопка подгрузки */}
