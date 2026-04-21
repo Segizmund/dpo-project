@@ -35,8 +35,18 @@ export default function DynamicSection({activeSection, sectionContent = []}) {
                                     <div>
                                         <span>Курс</span>
                                     </div>
-                                    <div className='rounded-3xl'>
-                                        <img className='rounded-3xl object-cover h-[170px] w-[170px]' src="/img/course.png" alt="" />
+                                    <div className='rounded-3xl h-[170px] w-[170px]'>
+                                        {
+                                            item.preview === null ? 
+                                            (
+                                                <div className='h-full w-full bg-gray-400 rounded-3xl'></div>
+                                            ) 
+                                            :
+                                            (
+                                                <img className='rounded-3xl object-cover' src="/img/course.png" alt="" />
+                                            )
+                                        }
+                                        
                                     </div>
                                 </div>
                                 <div className='flex flex-col gap-5 justify-between h-full'>

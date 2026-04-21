@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Http\Client\Pool;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Cache;
 
@@ -21,48 +22,25 @@ class CourseController extends Controller
     {
         $limit = $request->input('limit', 9);
 
-        $tags = [
-            'Войти в IT',
-            'Войти в IT с нуля',
-            'Освоить навык',
-        ];
-
         $allExternalData = [];
 
-        foreach ($tags as $tag) {
-            try {
-                $response = Http::withoutVerifying()
-                    ->timeout(30)
-                    ->withHeaders([
-                        'X-API-KEY' => $this->config['key'],
-                        'Accept'    => 'application/json',
-                    ])->get($this->config['url'] . '/course/public', [
-                        'course_tag' => $tag,
-                    ]);
+        $responses = Http::pool(fn (Pool $pool) => [
+            $pool->as('it')->withoutVerifying()->withHeaders(['X-API-KEY' => $this->config['key']])
+                ->get($this->config['url'] . '/course/public', ['course_tag' => 'Войти в IT']),
+            
+            $pool->as('zero')->withoutVerifying()->withHeaders(['X-API-KEY' => $this->config['key']])
+                ->get($this->config['url'] . '/course/public', ['course_tag' => 'Войти в IT с нуля']),
 
-                if ($response->failed()) {
-                    $allExternalData[$tag] = [
-                        'status' => 'error',
-                        'code'   => $response->status(),
-                        'body'   => $response->body(),
-                    ];
-                } else {
-                    $allExternalData[$tag] = $response->json() ?? $response->body();
-                }
-            } catch (\Exception $e) {
-                $allExternalData[$tag] = [
-                    'status'  => 'error',
-                    'message' => 'not_loaded',
-                ];
-            }
-        }
+            $pool->as('skill')->withoutVerifying()->withHeaders(['X-API-KEY' => $this->config['key']])
+                ->get($this->config['url'] . '/course/public', ['course_tag' => 'Освоить навык']),
+        ]);
 
 
         return Inertia::render('Welcome', [
-            'entry' => $allExternalData['Освоить навык'],
-            'helpChoose' => $allExternalData['Войти в IT с нуля'],
-            'learnSkill' => $allExternalData['Освоить навык'],
-            'seo' => [
+            'entry'      => $responses['it']->ok() ? $responses['it']->json() : [],
+            'helpChoose' => $responses['zero']->ok() ? $responses['zero']->json() : [],
+            'learnSkill' => $responses['skill']->ok() ? $responses['skill']->json() : [],
+            'seo' => fn() => [
                 'title' => 'Главная',
                 'description' => 'Добро пожаловать на платформу дополнительного профессионального образования. Обучаем IT-профессиям и современным методикам педагогики.',
             ]
