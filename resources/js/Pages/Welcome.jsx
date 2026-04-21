@@ -10,6 +10,7 @@ import ModalHelps from '@/Components/ModalHelps';
 const Welcome = ({seo, entry, helpChoose, learnSkill}) => {
     const [sectionVision, setSectionVision] = useState('btn-first');
     const [activeButtonId, setActiveButtonId] = useState('btn-first');
+    const [sectionContent, setSectionContent] = useState(entry);
     const [accepted, setAccepted] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -24,8 +25,14 @@ const Welcome = ({seo, entry, helpChoose, learnSkill}) => {
     const { slideBackground, resetBackground } = useSliderAnimation(parentRef, activeButtonId);
 
     const handleClick = (id) => {
+        const contentMap = {
+            'btn-first': entry,
+            'btn-second': helpChoose,
+            'btn-third': learnSkill,
+        };
         setActiveButtonId(id);
         setSectionVision(id);
+        setSectionContent(contentMap[id]);
     };
 
     const loadMore = () => {
@@ -218,7 +225,7 @@ const Welcome = ({seo, entry, helpChoose, learnSkill}) => {
                     </button>
                 </div>
                 <div className='mb-12 lg:mb-28'>
-                    <DynamicSection currentSection={sectionVision}/>
+                    <DynamicSection sectionContent={sectionContent} currentSection={sectionVision}/>
                 </div>
             </div>
             <div className='mb-12 lg:mb-28'>

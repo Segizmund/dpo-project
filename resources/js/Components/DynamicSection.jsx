@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import {Link } from '@inertiajs/react';
 
-export default function DynamicSection({activeSection}) {
+export default function DynamicSection({activeSection, sectionContent}) {
     const [content, setContent] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    console.log(sectionContent)
 
     /*const fetchContent = async (sectionId) => {
         setLoading(true);
@@ -69,90 +70,23 @@ export default function DynamicSection({activeSection}) {
     return (
         <div className=" animate-fadeIn">
             <div className="grid grid-cols-1 lg:grid-cols-3 2xl:grid-cols-4 gap-2.5">
-                <Link className='bg-[#EFEFEF] p-6 rounded-3xl flex flex-col gap-12 hover:-translate-y-1 hover:opacity-90 transition duration-300 ease-linear'>
-                    <div className='flex justify-between'>
-                        <div>
-                            <span>Курс</span>
-                        </div>
-                        <div className='rounded-3xl'>
-                            <img className='rounded-3xl object-cover h-[170px] w-[170px]' src="/img/course.png" alt="" />
-                        </div>
-                    </div>
-                    <div className='flex flex-col gap-5'>
-                        <h4 className='font-bold text-2xl'>Exel + Google Таблицы с нуля до PRO</h4>
-                        <span className='opacity-60'>4 месяца</span>
-                    </div>
-                </Link>
-                <Link className='bg-[#EFEFEF] p-6 rounded-3xl flex flex-col gap-12 hover:-translate-y-1 hover:opacity-90 transition duration-300 ease-linear'>
-                    <div className='flex justify-between'>
-                        <div>
-                            <span>Курс</span>
-                        </div>
-                        <div className='rounded-3xl'>
-                            <img className='rounded-3xl object-cover h-[170px] w-[170px]' src="/img/course.png" alt="" />
-                        </div>
-                    </div>
-                    <div className='flex flex-col gap-5'>
-                        <h4 className='font-bold text-2xl'>Exel + Google Таблицы с нуля до PRO</h4>
-                        <span className='opacity-60'>4 месяца</span>
-                    </div>
-                </Link>
-                <Link className='bg-[#EFEFEF] p-6 rounded-3xl flex flex-col gap-12 hover:-translate-y-1 hover:opacity-90 transition duration-300 ease-linear'>
-                    <div className='flex justify-between'>
-                        <div>
-                            <span>Курс</span>
-                        </div>
-                        <div className='rounded-3xl'>
-                            <img className='rounded-3xl object-cover h-[170px] w-[170px]' src="/img/course.png" alt="" />
-                        </div>
-                    </div>
-                    <div className='flex flex-col gap-5'>
-                        <h4 className='font-bold text-2xl'>Exel + Google Таблицы с нуля до PRO</h4>
-                        <span className='opacity-60'>4 месяца</span>
-                    </div>
-                </Link>
-                <Link className='bg-[#EFEFEF] p-6 rounded-3xl flex flex-col gap-12 hover:-translate-y-1 hover:opacity-90 transition duration-300 ease-linear'>
-                    <div className='flex justify-between'>
-                        <div>
-                            <span>Курс</span>
-                        </div>
-                        <div className='rounded-3xl'>
-                            <img className='rounded-3xl object-cover h-[170px] w-[170px]' src="/img/course.png" alt="" />
-                        </div>
-                    </div>
-                    <div className='flex flex-col gap-5'>
-                        <h4 className='font-bold text-2xl'>Exel + Google Таблицы с нуля до PRO</h4>
-                        <span className='opacity-60'>4 месяца</span>
-                    </div>
-                </Link>
-                <Link className='bg-[#EFEFEF] p-6 rounded-3xl flex flex-col gap-12 hover:-translate-y-1 hover:opacity-90 transition duration-300 ease-linear'>
-                    <div className='flex justify-between'>
-                        <div>
-                            <span>Курс</span>
-                        </div>
-                        <div className='rounded-3xl'>
-                            <img className='rounded-3xl object-cover h-[170px] w-[170px]' src="/img/course.png" alt="" />
-                        </div>
-                    </div>
-                    <div className='flex flex-col gap-5'>
-                        <h4 className='font-bold text-2xl'>Exel + Google Таблицы с нуля до PRO</h4>
-                        <span className='opacity-60'>4 месяца</span>
-                    </div>
-                </Link>
-                <Link className='bg-[#EFEFEF] p-6 rounded-3xl flex flex-col gap-12 hover:-translate-y-1 hover:opacity-90 transition duration-300 ease-linear'>
-                    <div className='flex justify-between'>
-                        <div>
-                            <span>Курс</span>
-                        </div>
-                        <div className='rounded-3xl'>
-                            <img className='rounded-3xl object-cover h-[170px] w-[170px]' src="/img/course.png" alt="" />
-                        </div>
-                    </div>
-                    <div className='flex flex-col gap-5'>
-                        <h4 className='font-bold text-2xl'>Exel + Google Таблицы с нуля до PRO</h4>
-                        <span className='opacity-60'>4 месяца</span>
-                    </div>
-                </Link>
+                {sectionContent.map((item) => (
+                        <Link key={item.id} className='bg-[#EFEFEF] p-6 rounded-3xl flex flex-col gap-12 hover:-translate-y-1 hover:opacity-90 transition duration-300 ease-linear'>
+                            <div className='flex justify-between'>
+                                <div>
+                                    <span>Курс</span>
+                                </div>
+                                <div className='rounded-3xl'>
+                                    <img className='rounded-3xl object-cover h-[170px] w-[170px]' src="/img/course.png" alt="" />
+                                </div>
+                            </div>
+                            <div className='flex flex-col gap-5'>
+                                <h4 className='font-bold text-2xl'>Exel + Google Таблицы с нуля до PRO</h4>
+                                <span className='opacity-60'>4 месяца</span>
+                            </div>
+                        </Link>
+                    ))
+                }
             </div>
             <div className='flex justify-center mt-12'>
                 <Link className='flex items-center gap-2 text-white bg-[#A621F3] py-4 px-12 rounded-full hover:opacity-85 hover:scale-105 transition duration-300 ease-linear'>

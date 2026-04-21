@@ -52,7 +52,7 @@ class CourseController extends Controller
             } catch (\Exception $e) {
                 $allExternalData[$tag] = [
                     'status'  => 'error',
-                    'message' => $e->getMessage(),
+                    'message' => 'not_loaded',
                 ];
             }
         }
