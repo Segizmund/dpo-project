@@ -7,7 +7,7 @@ import CoursesSlider from '@/Components/CoursesSlider';
 import SeoTags from '@/Components/Seo/SeoTags';
 import ModalHelps from '@/Components/ModalHelps';
 
-const Welcome = ({seo,apiStatus}) => {
+const Welcome = ({seo, entry, helpChoose, learnSkill}) => {
     const [sectionVision, setSectionVision] = useState('btn-first');
     const [activeButtonId, setActiveButtonId] = useState('btn-first');
     const [accepted, setAccepted] = useState(false);
@@ -39,17 +39,17 @@ const Welcome = ({seo,apiStatus}) => {
     };
 
     useEffect(() => {
-        if (apiStatus) {
-            console.log('Данные из API обновились:', apiStatus);
+        if (helpChoose) {
+            console.log('Данные из API обновились:', helpChoose);
         }
-    }, [apiStatus]);
+    }, [helpChoose]);
 
     return (
         <>
             <SeoTags seo={seo} />
 
             <div className='bg-[linear-gradient(180deg,_#833ED8_28.85%,_#FDA8F4_100%)] min-h-screen'>
-                <div className='container px-2.5 2xl:px-0 mx-auto flex flex-col items-center pt-40 gap-16'>
+                <div className='container px-2.5  mx-auto flex flex-col items-center pt-40 gap-16'>
                     <div>
                         <h1 className='text-white text-4xl md:text-6xl font-bold text-center'>Найди новую <br /> профессию в ДПО</h1>
                     </div>
@@ -157,7 +157,7 @@ const Welcome = ({seo,apiStatus}) => {
                     </div>
                 </div>
             </div>
-            <div className='container px-2.5 2xl:px-0 mx-auto pt-10 md:pt-36'>
+            <div className='container px-2.5  mx-auto pt-10 md:pt-36'>
                 <h3 className='text-4xl md:text-6xl font-bold text-center mb-16'>Более 1000 программ <br /> для карьеры и жизни</h3>
                 <div ref={parentRef} className='relative bg-[#EFEFEF] rounded-3xl lg:rounded-full flex flex-col lg:flex-row items-center mb-12 w-full px-6 lg:px-12'>
                     <span
@@ -224,7 +224,7 @@ const Welcome = ({seo,apiStatus}) => {
             <div className='mb-12 lg:mb-28'>
                 <CoursesSlider/>
             </div>
-            <div className='container px-2.5 2xl:px-0 mx-auto mb-32'>
+            <div className='container px-2.5  mx-auto mb-32'>
                 <div className='grid lg:grid-cols-2 gap-5'>
                     <div className='flex flex-col gap-8'>
                         <h4 className='text-4xl sm:text-5xl xl:text-6xl font-bold'>Выдаём дипломы и сертификаты</h4>
@@ -237,7 +237,7 @@ const Welcome = ({seo,apiStatus}) => {
                     </div>
                 </div>
             </div>
-            <div className='container px-2.5 2xl:px-0 mx-auto mb-24 flex justify-center'>
+            <div className='container px-2.5  mx-auto mb-24 flex justify-center'>
                 <div className='flex flex-col items-center gap-8 lg:w-[80%] relative'>
                     <img className='w-40 sm:w-auto absolute z-10 top-[-100px] sm:top-[-140px] 2xl:top-[-160px] left-[27%] 2xl:left-[30%]' src="/img/shape-1.png" alt="" />
                     <img className='w-28 sm:w-auto absolute z-10 top-[-30px] sm:top-[-55px] right-[-5%] 2xl:right-[5%]' src="/img/shape-2.png" alt="" />
@@ -249,7 +249,7 @@ const Welcome = ({seo,apiStatus}) => {
                 </div>
             </div>
             <div className='bg-[#250022] py-24'>
-                <div className='container px-2.5 2xl:px-0 mx-auto'>
+                <div className='container px-2.5  mx-auto'>
                     <div className='grid lg:grid-cols-2 gap-5 bg-white p-12 rounded-[40px]'>
                         <div className='flex flex-col gap-5 lg:w-[60%]'>
                             <h5 className='font-bold text-3xl'>Поможем решить все вопросы</h5>

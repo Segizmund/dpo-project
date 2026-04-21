@@ -14,7 +14,7 @@ export default function Header({isHome}) {
 
     return (
         <>
-            <header className={`container px-2.5 2xl:px-0 py-7 ${isHome ? 'absolute' : ''}`}>
+            <header className={`container px-2.5 py-7 ${isHome ? 'absolute' : ''}`}>
                 <div className={`flex items-center justify-between ${isHome ? 'text-white' : ''}`}>
                     <div>
                         <Link href={'/'} className={`uppercase flex text-3xl font-medium hover:scale-105 transition duration-300 ease-linear`}>ДПО</Link>

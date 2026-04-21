@@ -22,7 +22,7 @@ export default function PartnerSlider() {
 
     return (
         <section className='relative overflow-hidden '>
-            <div className='container mx-auto lg:ps-2.5 2xl:ps-0'>
+            <div className='container mx-auto lg:ps-2.5'>
                 <div className='grid lg:grid-cols-[30%_1fr] gap-10 items-start'>
                     
                     <div className='flex flex-col gap-5 px-2.5 lg:px-0'>

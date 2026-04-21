@@ -21,31 +21,47 @@ class CourseController extends Controller
     {
         $limit = $request->input('limit', 9);
 
-       try {
-               $response = Http::withoutVerifying()
-                   ->timeout(30)
-                   ->withHeaders([
-                       'X-API-KEY' => $this->config['key'],
-                       'Accept'    => 'application/json',
-                   ])->get($this->config['url'] . '/health');
+        $tags = [
+            'Войти в IT',
+            'Войти в IT с нуля',
+            'Освоить навык',
+        ];
 
-               if ($response->failed()) {
-                    $externalData = [
+        $allExternalData = [];
+
+        foreach ($tags as $tag) {
+            try {
+                $response = Http::withoutVerifying()
+                    ->timeout(30)
+                    ->withHeaders([
+                        'X-API-KEY' => $this->config['key'],
+                        'Accept'    => 'application/json',
+                    ])->get($this->config['url'] . '/course/public', [
+                        'course_tag' => $tag,
+                    ]);
+
+                if ($response->failed()) {
+                    $allExternalData[$tag] = [
                         'status' => 'error',
-                        'code' => $response->status(),
-                        'body' => $response->body()
+                        'code'   => $response->status(),
+                        'body'   => $response->body(),
                     ];
-               } else {
-                    $externalData = $response->json() ?? $response->body();
-               }
-
-        } catch (\Exception $e) {
-            $externalData = ['status' => 'error', 'message' => $e->getMessage()];
+                } else {
+                    $allExternalData[$tag] = $response->json() ?? $response->body();
+                }
+            } catch (\Exception $e) {
+                $allExternalData[$tag] = [
+                    'status'  => 'error',
+                    'message' => $e->getMessage(),
+                ];
+            }
         }
 
 
         return Inertia::render('Welcome', [
-            'apiStatus' => $externalData,
+            'entry' => $allExternalData['Освоить навык'],
+            'helpChoose' => $allExternalData['Войти в IT с нуля'],
+            'learnSkill' => $allExternalData['Освоить навык'],
             'seo' => [
                 'title' => 'Главная',
                 'description' => 'Добро пожаловать на платформу дополнительного профессионального образования. Обучаем IT-профессиям и современным методикам педагогики.',

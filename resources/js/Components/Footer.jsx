@@ -3,7 +3,7 @@ import { Link } from '@inertiajs/react';
 export default function Footer() {
     return (
         <footer className='bg-[#292929] py-10'>
-            <div className='flex flex-col xl:flex-row gap-10 xl:gap-0 justify-between text-white container mx-auto px-2.5 2xl:px-0'>
+            <div className='flex flex-col xl:flex-row gap-10 xl:gap-0 justify-between text-white container mx-auto px-2.5'>
                 <div className='flex flex-col gap-3 order-2 xl:order-1'>
                     <h4 className='font-bold text-2xl'>Направление</h4>
                     <div className='grid sm:grid-cols-2 gap-2 sm:gap-10 border-t pt-3'>

@@ -9,7 +9,7 @@ export default function PageLayout({ children }) {
             <div className='container mx-auto'>
                 <Header isHome={false}/>
             </div>
-            <div className='min-h-screen container mx-auto px-2.5 2xl:px-0'>
+            <div className='min-h-screen container mx-auto px-2.5 '>
                 {children}
             </div>
             <Footer/>
