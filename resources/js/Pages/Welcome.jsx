@@ -8,7 +8,6 @@ import SeoTags from '@/Components/Seo/SeoTags';
 import ModalHelps from '@/Components/ModalHelps';
 
 const Welcome = ({seo, entry, helpChoose, learnSkill}) => {
-    const [sectionVision, setSectionVision] = useState('btn-first');
     const [activeButtonId, setActiveButtonId] = useState('btn-first');
     const [sectionContent, setSectionContent] = useState(entry);
     const [accepted, setAccepted] = useState(false);
@@ -31,7 +30,6 @@ const Welcome = ({seo, entry, helpChoose, learnSkill}) => {
             'btn-third': learnSkill,
         };
         setActiveButtonId(id);
-        setSectionVision(id);
         setSectionContent(contentMap[id]);
     };
 
@@ -227,7 +225,7 @@ const Welcome = ({seo, entry, helpChoose, learnSkill}) => {
                 <div className='mb-12 lg:mb-28'>
                     {
                         activeButtonId !== 'btn-fourth' ? 
-                        (<DynamicSection sectionContent={sectionContent} currentSection={sectionVision}/>)
+                        (<DynamicSection sectionContent={sectionContent}/>)
                         :
                         (null)
                     }

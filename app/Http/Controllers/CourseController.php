@@ -79,13 +79,39 @@ class CourseController extends Controller
                 'title' => 'Бесплатные вебинары',
                 'description' => 'Смотрите бесплатные уроки от экспертов.',
             ],
+            'type' => 'free'
         ]);
     }
 
     public function webinars_paid(Request $request)
     {
+        $cursor = $request->input('cursor'); 
+        $limit = $request->input('limit', 3);
+
+        try {
+            $response = Http::withoutVerifying()
+                ->timeout(10)
+                ->withHeaders([
+                    'X-API-KEY' => $this->config['key'],
+                    'Accept'    => 'application/json',
+                ])->get($this->config['url'] . '/webinar/public/', [
+                    'limit' => (int) $limit,
+                    'next_cursor' => $cursor,
+                ]);
+
+            $data = $response->successful() 
+                ? $response->json() 
+                : ['webinars' => [], 'next_cursor' => null];
+
+        } catch (\Exception $e) {
+            \Log::error("Webinars API Error: " . $e->getMessage());
+            $data = ['webinars' => [], 'next_cursor' => null];
+        }
+
         return Inertia::render('Webinars', [
-            'seo' => [
+            'webinars'   => $data['webinars'] ?? [],
+            'nextCursor' => $data['next_cursor'] ?? null,
+            'seo' => fn() => [
                 'title' => 'Платные вебинары',
                 'description' => 'Углубленные программы обучения с практикой и обратной связью от менторов.',
             ],

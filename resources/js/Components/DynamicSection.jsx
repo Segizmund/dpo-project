@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {Link } from '@inertiajs/react';
+import { rangeDate } from '@/utils/rangeDate';
 
-export default function DynamicSection({activeSection, sectionContent = []}) {
+export default function DynamicSection({sectionContent = []}) {
     const [content, setContent] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -10,20 +11,6 @@ export default function DynamicSection({activeSection, sectionContent = []}) {
     const dataToRender = Array.isArray(sectionContent) 
     ? sectionContent 
     : (sectionContent?.data || []);
-
-    function rangeDate(startDate, endDate) {
-        const start = new Date(startDate);
-        const end = new Date(endDate);
-
-        const diffInMs = end - start;
-
-        const weeks = Math.floor(diffInMs / (7 * 24 * 60 * 60 * 1000));
-
-        const months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
-
-        
-        return `${months} мес. (${weeks > 0 ? weeks + 'нед.': null})`;
-    }
 
     return (
         <div className=" animate-fadeIn">
