@@ -225,7 +225,12 @@ const Welcome = ({seo, entry, helpChoose, learnSkill}) => {
                     </button>
                 </div>
                 <div className='mb-12 lg:mb-28'>
-                    <DynamicSection sectionContent={sectionContent} currentSection={sectionVision}/>
+                    {
+                        activeButtonId !== 'btn-fourth' ? 
+                        (<DynamicSection sectionContent={sectionContent} currentSection={sectionVision}/>)
+                        :
+                        (null)
+                    }
                 </div>
             </div>
             <div className='mb-12 lg:mb-28'>
