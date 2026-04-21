@@ -7,65 +7,16 @@ export default function DynamicSection({activeSection, sectionContent}) {
     const [error, setError] = useState(null);
     console.log(sectionContent)
 
-    /*const fetchContent = async (sectionId) => {
-        setLoading(true);
-        setError(null);
-        
-        try {
-            const response = await fetch(`/api/sections/${sectionId}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
-                },
-            });
-            
-            if (!response.ok) {
-                throw new Error('Ошибка загрузки данных');
-            }
-            
-            const data = await response.json();
-            setContent(data);
-        } catch (err) {
-            setError(err.message);
-            console.error('Ошибка при загрузке:', err);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        if (activeSection) {
-            fetchContent(activeSection);
-        }
-    }, [activeSection]);
-
-    if (loading) {
-        return (
-            <div className="flex justify-center items-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
-                <span className="ml-3 text-gray-600">Загрузка...</span>
-            </div>
-        );
+    function rangeDate(startDate, endDate){
+       startDate = startDate.split('T').slice(0);
+       startDate = startDate[0].split('-');
+       endDate = endDate.split('T').slice(0);
+       endDate = endDate[0].split('-');
+       
+       console.log(startDate);
+       console.log('-');
+       console.log(endDate);
     }
-
-    if (error) {
-        return (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
-                <p className="text-red-600">Ошибка: {error}</p>
-                <button 
-                    onClick={() => fetchContent(activeSection)}
-                    className="mt-2 text-purple-600 hover:text-purple-800"
-                >
-                    Попробовать снова
-                </button>
-            </div>
-        );
-    }
-
-    if (!content) {
-        return null;
-    }*/
 
     return (
         <div className=" animate-fadeIn">
@@ -81,8 +32,8 @@ export default function DynamicSection({activeSection, sectionContent}) {
                                 </div>
                             </div>
                             <div className='flex flex-col gap-5'>
-                                <h4 className='font-bold text-2xl'>Exel + Google Таблицы с нуля до PRO</h4>
-                                <span className='opacity-60'>4 месяца</span>
+                                <h4 className='font-bold text-2xl'>{item.name}</h4>
+                                <span className='opacity-60'>{rangeDate(item.start_date, item.end_date)}</span>
                             </div>
                         </Link>
                     ))
