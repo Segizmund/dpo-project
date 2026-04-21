@@ -24,13 +24,13 @@ export default function DynamicSection({sectionContent = []}) {
                                     </div>
                                     <div className='rounded-3xl h-[170px] w-[170px]'>
                                         {
-                                            item.preview === null ? 
+                                            item.preview_url === null ? 
                                             (
                                                 <div className='h-full w-full bg-gray-400 rounded-3xl'></div>
                                             ) 
                                             :
                                             (
-                                                <img className='rounded-3xl object-cover' src="/img/course.png" alt="" />
+                                                <img className='rounded-3xl object-cover' src={item.preview_url} alt="" />
                                             )
                                         }
                                         

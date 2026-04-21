@@ -324,10 +324,10 @@ const Webinars = ({seo, webinars, nextCursor,}) => {
                                 <Link href={route('webinar.show', webinar.id)} key={webinar.id} className='flex flex-col justify-between gap-2 group cursor-pointer animate-in fade-in slide-in-from-bottom-4 duration-500'>
                                     <div className='flex flex-col gap-4 '>
                                         <div className='relative rounded-2xl overflow-hidden aspect-video bg-gray-100'>
-                                            {webinar.preview_url === 'dummy' ? (
+                                            {webinar.preview_url === null ? (
                                                     <div className='absolute h-full w-full bg-gray-400'></div>
                                                 ) : (
-                                                    <img src={webinar.image} alt={webinar.name} className='object-cover w-full h-full group-hover:scale-105 transition duration-500' />
+                                                    <img src={webinar.preview_url} alt={webinar.name} className='object-cover w-full h-full group-hover:scale-105 transition duration-500' />
                                                 )
                                             }
                                             

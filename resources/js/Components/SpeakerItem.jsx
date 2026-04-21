@@ -14,7 +14,7 @@ export default function SpeakerItem({ item, selected, toggle }) {
                     ? 'font-bold text-black' 
                     : 'text-gray-600 group-hover:text-black'
             }`}>
-                {item.name} {/* У спикеров поле name, а не label */}
+                {item.name}
             </span>
         </label>
     );
