@@ -37,9 +37,9 @@ class CourseController extends Controller
 
 
         return Inertia::render('Welcome', [
-            'entry'      => $responses['it']->ok() ? $responses['it']->json() : [],
-            'helpChoose' => $responses['zero']->ok() ? $responses['zero']->json() : [],
-            'learnSkill' => $responses['skill']->ok() ? $responses['skill']->json() : [],
+            'entry'      => (isset($responses['it']) && $responses['it']->ok()) ? $responses['it']->json() : [],
+            'helpChoose' => (isset($responses['zero']) && $responses['zero']->ok()) ? $responses['zero']->json() : [],
+            'learnSkill' => (isset($responses['skill']) && $responses['skill']->ok()) ? $responses['skill']->json() : [],
             'seo' => fn() => [
                 'title' => 'Главная',
                 'description' => 'Добро пожаловать на платформу дополнительного профессионального образования. Обучаем IT-профессиям и современным методикам педагогики.',
