@@ -55,7 +55,7 @@ export default function CourseBox({group})
                     >
                         <div className='flex flex-col px-4 py-2.5 rounded-2xl gap-2 z-10 absolute left-2.5 top-2.5 w-fit max-w-[calc(100%-20px)] bg-white'>
                             <span className='font-medium'>
-                                {course.type}
+                                {course.price} ₽
                             </span>
                         </div>
                         <div className='relative rounded-2xl overflow-hidden bg-gray-100'>

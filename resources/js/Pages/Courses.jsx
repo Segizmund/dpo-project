@@ -194,10 +194,28 @@ const Courses = ({ seo, tags }) => {
                             </div>
                         ) : (
                             <>
+                            <div className='flex items-center gap-2 mb-6 flex-wrap'>
+                                {activeCategoryObjects.length > 0 ? (
+                                    activeCategoryObjects.map((cat, i) => (
+                                        <div key={cat.id} className='flex items-center gap-2'>
+                                            <h4 className='font-bold text-2xl'>{cat.label}</h4>
+                                            {i < activeCategoryObjects.length - 1 && <span>/</span>}
+                                        </div>
+                                    ))
+                                ) : (
+                                    <h4 className='font-bold text-2xl'>Результаты поиска</h4>
+                                )}
+                            </div>
+
                                 <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8'>
                                     {filteredCourses.length > 0 ? (
                                         filteredCourses.map(course => (
-                                            <Link href={route('course.show', course.id)} key={course.id} className='flex flex-col gap-4 group animate-in fade-in slide-in-from-bottom-4 duration-500'>
+                                            <Link href={route('course.show', course.id)} key={course.id} className='flex relative flex-col gap-4 group animate-in fade-in slide-in-from-bottom-4 duration-500'>
+                                                <div className='flex flex-col px-4 py-2.5 rounded-2xl gap-2 z-10 absolute left-2.5 top-2.5 w-fit max-w-[calc(100%-20px)] bg-white'>
+                                                    <span className='font-medium'>
+                                                        {course.price} ₽
+                                                    </span>
+                                                </div>
                                                 <div className='relative rounded-2xl overflow-hidden aspect-video bg-gray-100'>
                                                     <img src={course.preview_url} alt={course.name} className='object-cover w-full h-full group-hover:scale-105 transition duration-500' />
                                                 </div>
