@@ -1,8 +1,10 @@
 import { useRef, useState, useEffect } from 'react';
 import { Link } from '@inertiajs/react';
+import { rangeDate } from '@/utils/rangeDate';
 
 export default function CourseBox({group})
 {
+    console.log(group)
     const scrollRef = useRef(null);
     const [canScrollLeft, setCanScrollLeft] = useState(false);
     const [canScrollRight, setCanScrollRight] = useState(false);
@@ -58,17 +60,17 @@ export default function CourseBox({group})
                         </div>
                         <div className='relative rounded-2xl overflow-hidden bg-gray-100'>
                             <img 
-                                src={course.image} 
-                                alt={course.title} 
+                                src={course.preview_url} 
+                                alt={course.name} 
                                 className='object-cover w-full h-full group-hover:scale-105 transition duration-500' 
                             />
                         </div>
                         <div className='flex flex-col px-4 py-2.5 rounded-2xl gap-2 absolute left-2.5 bottom-2.5 w-[calc(100%-20px)] bg-[#FFFFFF]/70'>
                             <p className='font-medium'>
-                                {course.title}
+                                {course.name}
                             </p>
                             <span className='font-medium'>
-                                {course.duration}
+                                {rangeDate(course.start_date, course.end_date)}
                             </span>
                         </div>
                     </Link>

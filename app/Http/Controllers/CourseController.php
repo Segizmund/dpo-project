@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Client\Pool;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Cache;
@@ -121,7 +122,26 @@ class CourseController extends Controller
 
     public function courses(Request $request)
     {
+        $limit = $request->input('limit', 6);
+
+        try {
+            $response = Http::withoutVerifying()
+                ->withHeaders([
+                    'X-API-KEY' => $this->config['key'],
+                    'Accept'    => 'application/json',
+                ])
+                ->get($this->config['url'] . '/course/public/tags', [
+                    'limit' => $limit
+                ]);
+
+            $tags = $response->ok() ? $response->json() : [];
+        } catch (\Exception $e) {
+            $tags = [];
+            Log::error("Failed to fetch tags: " . $e->getMessage());
+        }
+
         return Inertia::render('Courses', [
+            'tags' => $tags,
             'seo' => [
                 'title' => 'Каталог всех курсов',
                 'description' => 'Выберите подходящий курс: от разработки на Laravel до инклюзивного образования.',
