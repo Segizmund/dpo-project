@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
 import { useState, useMemo, useEffect } from 'react';
 import PageLayout from '@/Layouts/PageLayout';
 import SubscribeBox from '@/Components/SubscribeBox';
@@ -7,17 +7,37 @@ import CustomSelect from '@/Components/CustomSelect';
 import SeoTags from '@/Components/Seo/SeoTags';
 import ModalHelps from '@/Components/ModalHelps';
 import { rangeDate } from '@/utils/rangeDate';
+import axios from 'axios';
 
 const Courses = ({ seo, tags }) => {
-    const groupsData = useMemo(() => {
+    // Преобразуем tags в массив групп
+    const [groupsData, setGroupsData] = useState(() => {
         if (!tags) return [];
         return Object.entries(tags).map(([groupName, items]) => ({
             id: groupName,
             label: groupName,
-            courses: Array.isArray(items) ? items : []
+            courses: Array.isArray(items) ? items : [],
+            allCoursesLoaded: false,
+            isLoading: false
         }));
-    }, [tags]);
+    });
 
+    const [loadedGroupCourses, setLoadedGroupCourses] = useState({});
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedCategories, setSelectedCategories] = useState([]);
+    const [selectedLevel, setSelectedLevel] = useState(null);
+    const [selectedEmployment, setSelectedEmployment] = useState(null);
+    const [selectedDuration, setSelectedDuration] = useState(null);
+    const [isCatsOpen, setIsCatsOpen] = useState(true);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    
+    const limit = 5;
+    const levels = [
+        { id: 'beginner', label: 'Легкий' },
+        { id: 'pro', label: 'Тяжелый' }
+    ];
+
+    // Все курсы
     const allCourses = useMemo(() => {
         return groupsData.flatMap(group => 
             group.courses.map(course => ({
@@ -27,40 +47,105 @@ const Courses = ({ seo, tags }) => {
         );
     }, [groupsData]);
 
+    // Уникальные длительности
     const uniqueDurations = useMemo(() => {
         const durations = allCourses.map(course => 
             rangeDate(course.start_date, course.end_date)
         );
-        return [...new Set(durations)].map(d => ({
+        return [...new Set(durations)].filter(Boolean).map(d => ({
             id: d,
             label: d
         }));
     }, [allCourses]);
 
-    const [searchQuery, setSearchQuery] = useState('');
-    const [selectedCategories, setSelectedCategories] = useState([]);
-    const [selectedLevel, setSelectedLevel] = useState(null);
-    const [selectedEmployment, setSelectedEmployment] = useState(null);
-    const [selectedDuration, setSelectedDuration] = useState(null);
+    // Загрузка всех курсов для тега
+    const loadAllCoursesForGroup = async (groupId, groupLabel) => {
+        if (loadedGroupCourses[groupId] || groupsData.find(g => g.id === groupId)?.isLoading) {
+            return;
+        }
 
-    const [isCatsOpen, setIsCatsOpen] = useState(true);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    
-    const limit = 5; 
-    const levels = [{ id: 'beginner', label: 'Легкий' }, { id: 'pro', label: 'Тяжелый' }];
+        setGroupsData(prev => prev.map(group => 
+            group.id === groupId ? { ...group, isLoading: true } : group
+        ));
+        
+        try {
+            const response = await axios.get('/courses/by-tag', {
+                params: { tag: groupLabel }
+            });
+            
+            if (response.data && Array.isArray(response.data)) {
+                setLoadedGroupCourses(prev => ({
+                    ...prev,
+                    [groupId]: response.data
+                }));
+                console.log(`Загружено ${response.data.length} курсов для "${groupLabel}"`);
+            }
+        } catch (error) {
+            console.error('Error loading courses:', error);
+        } finally {
+            setGroupsData(prev => prev.map(group => 
+                group.id === groupId ? { ...group, isLoading: false, allCoursesLoaded: true } : group
+            ));
+        }
+    };
 
-    const toggleCategory = (id) => {
+    // Переключение категории
+    const toggleCategory = async (groupId) => {
+        const isSelected = selectedCategories.includes(groupId);
+        const group = groupsData.find(g => g.id === groupId);
+        
+        if (!isSelected && group && !loadedGroupCourses[groupId]) {
+            await loadAllCoursesForGroup(groupId, group.label);
+        }
+        
         setSelectedCategories(prev => 
-            prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+            prev.includes(groupId) ? prev.filter(item => item !== groupId) : [...prev, groupId]
         );
     };
 
+    // Получение курсов для отображения в группе
+    const getDisplayCoursesForGroup = (groupId) => {
+        if (loadedGroupCourses[groupId]) {
+            return loadedGroupCourses[groupId];
+        }
+        const group = groupsData.find(g => g.id === groupId);
+        return group ? group.courses : [];
+    };
+
+    // Активные объекты категорий
     const activeCategoryObjects = useMemo(() => {
         return groupsData.filter(cat => selectedCategories.includes(cat.id));
     }, [selectedCategories, groupsData]);
 
+    // Все курсы для фильтрации
+    const allAvailableCourses = useMemo(() => {
+        let courses = [];
+        
+        if (selectedCategories.length === 0) {
+            courses = [...allCourses];
+        } else {
+            selectedCategories.forEach(catId => {
+                const group = groupsData.find(g => g.id === catId);
+                if (loadedGroupCourses[catId]) {
+                    courses.push(...loadedGroupCourses[catId].map(course => ({
+                        ...course,
+                        parent_group_id: catId
+                    })));
+                } else if (group) {
+                    courses.push(...group.courses.map(course => ({
+                        ...course,
+                        parent_group_id: catId
+                    })));
+                }
+            });
+        }
+        
+        return courses;
+    }, [selectedCategories, groupsData, loadedGroupCourses, allCourses]);
+
+    // Фильтрация курсов
     const filteredCourses = useMemo(() => {
-        return allCourses.filter(course => {
+        return allAvailableCourses.filter(course => {
             const matchesCategory = selectedCategories.length === 0 || 
                                     selectedCategories.includes(course.parent_group_id);
             
@@ -76,11 +161,27 @@ const Courses = ({ seo, tags }) => {
             
             return matchesCategory && matchesSearch && matchesDuration && matchesLevel && matchesEmployment;
         });
-    }, [allCourses, selectedCategories, searchQuery, selectedDuration, selectedLevel, selectedEmployment]);
-
+    }, [allAvailableCourses, selectedCategories, searchQuery, selectedDuration, selectedLevel, selectedEmployment]);
+    console.log(filteredCourses)
+    // Проверка наличия фильтров
     const isFiltered = useMemo(() => {
-        return searchQuery !== '' || !!selectedDuration || !!selectedLevel || !!selectedEmployment;
+        return searchQuery !== '' || selectedDuration !== null || selectedLevel !== null || selectedEmployment !== null;
     }, [searchQuery, selectedDuration, selectedLevel, selectedEmployment]);
+
+    // Обработчик клика на "Все программы"
+    const handleShowAllPrograms = async (groupId, groupLabel) => {
+        await loadAllCoursesForGroup(groupId, groupLabel);
+        setSelectedCategories([groupId]);
+    };
+
+    // Сброс фильтров
+    const resetFilters = () => {
+        setSearchQuery('');
+        setSelectedDuration(null);
+        setSelectedLevel(null);
+        setSelectedEmployment(null);
+        setSelectedCategories([]);
+    };
 
     useEffect(() => {
         const handleLayout = () => setIsCatsOpen(window.innerWidth > 1023);
@@ -89,19 +190,33 @@ const Courses = ({ seo, tags }) => {
         return () => window.removeEventListener('resize', handleLayout);
     }, []);
 
+    if (groupsData.length === 0) {
+        return (
+            <>
+                <SeoTags seo={seo} />
+                <div className='mt-10 mb-16'>
+                    <h1 className='text-4xl xl:text-6xl font-bold'>Все курсы</h1>
+                </div>
+                <div className='py-20 text-center'>
+                    <h3 className='text-xl font-medium text-gray-500'>Курсы загружаются...</h3>
+                </div>
+            </>
+        );
+    }
+
     return (
         <>
             <SeoTags seo={seo} />
             
             <div className='mt-10 mb-16'>
-                <h1 className='text-4xl xl:text-6xl font-bold '>Все курсы</h1>
+                <h1 className='text-4xl xl:text-6xl font-bold'>Все курсы</h1>
             </div>
 
             {/* Поиск */}
             <div className="relative w-full my-16">
                 <input 
                     type="text"
-                    placeholder="Поиск"
+                    placeholder="Поиск курсов..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="w-full py-2.5 ps-10 pe-4 bg-[#F5F5F5] border border-[#E0E0E0] rounded-lg focus:ring-1 focus:border-[#A621F3] focus:ring-[#A621F3] transition-all"
@@ -122,20 +237,40 @@ const Courses = ({ seo, tags }) => {
                     className={'w-full justify-center min-w-[200px]'} 
                 />
                 
-                <CustomSelect label="Уровень сложности" items={levels} value={selectedLevel} onSelect={setSelectedLevel} className={'w-full justify-center min-w-[200px]'} />
+                <CustomSelect 
+                    label="Уровень сложности" 
+                    items={levels} 
+                    value={selectedLevel} 
+                    onSelect={setSelectedLevel} 
+                    className={'w-full justify-center min-w-[200px]'} 
+                />
                 
                 <button 
                     onClick={() => setSelectedEmployment(prev => prev?.id === 'yes' ? null : {id: 'yes'})}
                     className={`px-6 py-2.5 rounded-full transition duration-300 font-medium border whitespace-nowrap ${selectedEmployment?.id === 'yes' ? 'bg-[#A621F3] text-white border-[#A621F3]' : 'bg-white border-black hover:border-[#A621F3]'}`}
-                >Трудоустройство</button>
+                >
+                    Трудоустройство
+                </button>
+
+                {isFiltered && (
+                    <button 
+                        onClick={resetFilters}
+                        className="px-6 py-2.5 rounded-full transition duration-300 font-medium border border-gray-300 hover:bg-gray-100"
+                    >
+                        Сбросить фильтры
+                    </button>
+                )}
             </div>
 
             <div className='grid lg:grid-cols-[20%_auto] xl:grid-cols-[300px_1fr] gap-12 border-t border-black py-6'>
+                {/* Сайдбар */}
                 <aside className='flex flex-col gap-8'>
                     <div className='border-b border-black pb-8'>
                         <button onClick={() => setIsCatsOpen(!isCatsOpen)} className='flex items-center justify-between w-full text-left mb-4 group'>
                             <h3 className='text-xl font-bold tracking-wider'>Тематика</h3>
-                            <svg className={`transform transition-transform duration-300 ${isCatsOpen ? 'rotate-180' : ''}`} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                            <svg className={`transform transition-transform duration-300 ${isCatsOpen ? 'rotate-180' : ''}`} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
                         </button>
                         <div className={`grid transition-all duration-300 ease-in-out ${isCatsOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
                             <div className="overflow-hidden">
@@ -143,14 +278,19 @@ const Courses = ({ seo, tags }) => {
                                     <button 
                                         onClick={() => setSelectedCategories([])}
                                         className={`px-4 py-2.5 rounded-full transition duration-300 font-medium border ${selectedCategories.length === 0 ? 'bg-[#A621F3] text-white border-[#A621F3]' : 'bg-white border-black hover:bg-[#A621F3] hover:text-white'}`}
-                                    >Все направления</button>
+                                    >
+                                        Все направления
+                                    </button>
                                     
                                     {groupsData.slice(0, limit).map(cat => (
                                         <button 
                                             key={cat.id}
                                             onClick={() => toggleCategory(cat.id)}
-                                            className={`px-4 py-2.5 rounded-full transition duration-300 font-medium border ${selectedCategories.includes(cat.id) ? 'bg-[#A621F3] text-white border-[#A621F3]' : 'bg-white border-black hover:bg-[#A621F3] hover:text-white'}`}
-                                        >{cat.label}</button>
+                                            className={`px-4 py-2.5 rounded-full transition duration-300 font-medium border text-left ${selectedCategories.includes(cat.id) ? 'bg-[#A621F3] text-white border-[#A621F3]' : 'bg-white border-black hover:bg-[#A621F3] hover:text-white'}`}
+                                            disabled={cat.isLoading}
+                                        >
+                                            {cat.isLoading ? 'Загрузка...' : cat.label}
+                                        </button>
                                     ))}
                                 </div>
                             </div>
@@ -158,48 +298,50 @@ const Courses = ({ seo, tags }) => {
                     </div>
                 </aside>
 
+                {/* Основной контент */}
                 <main className='overflow-hidden pb-6'>
-                    {groupsData.filter(g => g.courses.length > 0).length === 0 ? (
-                        <div className='py-20 text-center'>
-                            <h3 className='text-xl font-medium text-gray-500'>Курсов пока что нет</h3>
+                    {selectedCategories.length === 0 && !isFiltered ? (
+                        <div className='flex flex-col gap-12'>
+                            {groupsData.filter(g => g.courses.length > 0).map((group, index) => (
+                                <div key={group.id}>
+                                    <div className='flex flex-col gap-8'>
+                                        <div className='flex justify-between items-end'>
+                                            <h3 className='text-2xl font-bold'>{group.label}</h3>
+                                            <button 
+                                                onClick={() => handleShowAllPrograms(group.id, group.label)}
+                                                className='hover:text-[#A621F3] transition font-medium'
+                                                disabled={group.isLoading}
+                                            >
+                                                {group.isLoading ? 'Загрузка...' : 'Все программы'}
+                                            </button>
+                                        </div>
+                                        <CourseBox group={{
+                                            ...group, 
+                                            courses: getDisplayCoursesForGroup(group.id)
+                                        }}/>
+                                    </div>
+                                    {index === 0 && (
+                                        <div className='bg-[#ededed] py-6 px-4 rounded-2xl flex gap-8 flex-col md:flex-row justify-between items-center mt-12'>
+                                            <div className='flex flex-col gap-3'>
+                                                <span className='font-medium'>Не знаете что выбрать?</span>
+                                                <span className='font-medium text-gray-500'>Перезвоним и поможем найти подходящий курс</span>
+                                            </div>
+                                            <button onClick={() => setIsModalOpen(true)} className='py-2.5 px-4 rounded-lg font-medium border border-black hover:bg-[#A621F3] hover:text-white hover:border-[#A621F3] transition'>
+                                                Нужна помощь
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
                         </div>
                     ) : (
-                        selectedCategories.length === 0 && !isFiltered ? (
-                            <div className='flex flex-col gap-12'>
-                                {groupsData.filter(g => g.courses.length > 0).map((group, index) => (
-                                    <div key={group.id}>
-                                        <div className='flex flex-col gap-8'>
-                                            <div className='flex justify-between items-end'>
-                                                <h3 className='text-2xl font-bold'>{group.label}</h3>
-                                                <button 
-                                                    onClick={() => setSelectedCategories([group.id])} 
-                                                    className='hover:text-[#A621F3] transition text-sm font-medium'
-                                                >
-                                                    Все программы
-                                                </button>
-                                            </div>
-                                            <CourseBox group={group}/>
-                                        </div>
-                                        {index === 0 && (
-                                            <div className='bg-[#F5F5F5] py-6 px-4 rounded-2xl flex gap-8 flex-col md:flex-row justify-between items-center mt-12'>
-                                                <div className='flex flex-col gap-3'>
-                                                    <span className='font-medium'>Не знаете что выбрать?</span>
-                                                    <span className='font-medium text-gray-500'>Перезвоним и поможем найти подходящий курс</span>
-                                                </div>
-                                                <button onClick={() => setIsModalOpen(true)} className='py-2.5 px-4 rounded-lg font-medium border border-black hover:bg-[#A621F3] hover:text-white hover:border-[#A621F3] transition'>Нужна помощь</button>
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <>
+                        <>
                             <div className='flex items-center gap-2 mb-6 flex-wrap'>
                                 {activeCategoryObjects.length > 0 ? (
                                     activeCategoryObjects.map((cat, i) => (
                                         <div key={cat.id} className='flex items-center gap-2'>
                                             <h4 className='font-bold text-2xl'>{cat.label}</h4>
-                                            {i < activeCategoryObjects.length - 1 && <span>/</span>}
+                                            {i < activeCategoryObjects.length - 1 && <span className='text-2xl'>/</span>}
                                         </div>
                                     ))
                                 ) : (
@@ -207,36 +349,47 @@ const Courses = ({ seo, tags }) => {
                                 )}
                             </div>
 
-                                <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8'>
-                                    {filteredCourses.length > 0 ? (
-                                        filteredCourses.map(course => (
-                                            <Link href={route('course.show', course.id)} key={course.id} className='flex relative flex-col gap-4 group animate-in fade-in slide-in-from-bottom-4 duration-500'>
-                                                <div className='flex flex-col px-4 py-2.5 rounded-2xl gap-2 z-10 absolute left-2.5 top-2.5 w-fit max-w-[calc(100%-20px)] bg-white'>
-                                                    <span className='font-medium'>
-                                                        {course.price} ₽
-                                                    </span>
-                                                </div>
-                                                <div className='relative rounded-2xl overflow-hidden aspect-video bg-gray-100'>
-                                                    <img src={course.preview_url} alt={course.name} className='object-cover w-full h-full group-hover:scale-105 transition duration-500' />
-                                                </div>
-                                                <div className='flex flex-col gap-1'>
-                                                    <h4 className='font-medium leading-tight group-hover:text-[#A621F3] transition'>{course.name}</h4>
-                                                    <span className='text-sm text-gray-500 font-medium'>
-                                                        {rangeDate(course.start_date, course.end_date)}
-                                                    </span>
-                                                </div>
-                                            </Link>
-                                        ))
-                                    ) : (
-                                        <div className='col-span-full py-20 text-center text-gray-500'>
-                                            По вашему запросу ничего не найдено
-                                        </div>
-                                    )}
-                                </div>
-                            </>
-                        )
+                            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8'>
+                                {filteredCourses.length > 0 ? (
+                                    filteredCourses.map(course => (
+                                        <Link href={route('course.show', course.id)} key={course.id} className='flex relative flex-col gap-4 group animate-in fade-in slide-in-from-bottom-4 duration-500'>
+                                            <div className='flex flex-col px-4 py-2.5 rounded-2xl gap-2 z-10 absolute left-2.5 top-2.5 w-fit max-w-[calc(100%-20px)] bg-white/90 backdrop-blur-sm'>
+                                                <span className='font-medium'>{course.price} ₽</span>
+                                            </div>
+                                            <div className='flex flex-col px-4 py-2.5 rounded-2xl gap-2 z-10 absolute right-2.5 top-2.5 w-fit max-w-[calc(100%-20px)] bg-white/90 backdrop-blur-sm'>
+                                                <span className='font-medium'>{course.price} ₽</span>
+                                            </div>
+                                            <div className='relative rounded-2xl overflow-hidden aspect-video bg-gray-100'>
+                                                {course.preview_url ? (
+                                                    <img 
+                                                        src={course.preview_url} 
+                                                        alt={course.name} 
+                                                        className='object-cover w-full h-full group-hover:scale-105 transition duration-500' 
+                                                    />
+                                                ) : (
+                                                    <div className='w-full h-full flex items-center justify-center bg-gray-200'>
+                                                        <span className='text-gray-400'>Нет изображения</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className='flex flex-col gap-1'>
+                                                <h4 className='font-medium leading-tight group-hover:text-[#A621F3] transition'>{course.name}</h4>
+                                                <span className='text-sm text-gray-500 font-medium'>
+                                                    {rangeDate(course.start_date, course.end_date)}
+                                                </span>
+                                            </div>
+                                        </Link>
+                                    ))
+                                ) : (
+                                    <div className='col-span-full py-20 text-center'>
+                                        <p className='text-gray-500'>По вашему запросу ничего не найдено</p>
+                                    </div>
+                                )}
+                            </div>
+                        </>
                     )}
                 </main>
+                <SubscribeBox/>
             </div>
             {isModalOpen && <ModalHelps onClose={() => setIsModalOpen(false)} />}
         </>
@@ -244,4 +397,5 @@ const Courses = ({ seo, tags }) => {
 };
 
 Courses.layout = page => <PageLayout children={page} />;
+
 export default Courses;

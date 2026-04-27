@@ -149,6 +149,38 @@ class CourseController extends Controller
         ]);
     }
 
+    public function getCoursesByTag(Request $request)
+    {
+        $tag = $request->input('tag');
+        
+        if (!$tag) {
+            return response()->json(['error' => 'Tag is required'], 400);
+        }
+        
+        try {
+            $response = Http::withoutVerifying()
+                ->timeout(30)
+                ->withHeaders(['X-API-KEY' => $this->config['key']])
+                ->get($this->config['url'] . '/course/public', [
+                    'course_tag' => $tag
+                ]);
+            
+            if ($response->ok()) {
+                $courses = $response->json();
+                
+                Log::info("Loaded " . count($courses) . " courses for tag: {$tag}");
+                
+                return response()->json($courses);
+            }
+            
+            return response()->json(['error' => 'Failed to fetch courses'], $response->status());
+            
+        } catch (\Exception $e) {
+            Log::error("Error fetching courses by tag {$tag}: " . $e->getMessage());
+            return response()->json(['error' => 'Server error'], 500);
+        }
+    }
+
     public function courseShow(Request $request)
     {
         return Inertia::render('CourseShow', [

@@ -4,7 +4,6 @@ import { rangeDate } from '@/utils/rangeDate';
 
 export default function CourseBox({group})
 {
-    console.log(group)
     const scrollRef = useRef(null);
     const [canScrollLeft, setCanScrollLeft] = useState(false);
     const [canScrollRight, setCanScrollRight] = useState(false);
