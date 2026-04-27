@@ -1,45 +1,146 @@
+import { useEffect, useState } from 'react';
 import PageLayout from '@/Layouts/PageLayout';
 import SeoTags from '@/Components/Seo/SeoTags';
+import { rangeDate } from '@/utils/rangeDate';
 
-const CourseShow = ({seo}) => {
+const CourseShow = ({ seo, course: apiCourse }) => {
+    const [course, setCourse] = useState(null);
+    const [loading, setLoading] = useState(true);
+    
+    useEffect(() => {
+        if (apiCourse && Object.keys(apiCourse).length > 0) {
+            setCourse(apiCourse);
+            setLoading(false);
+        } else {
+            setLoading(false);
+        }
+    }, [apiCourse]);
+    
+    if (loading) {
+        return (
+            <>
+                <SeoTags seo={seo} />
+                <div className='mt-10 mb-16'>
+                    <h1 className='text-4xl xl:text-6xl font-bold'>Загрузка...</h1>
+                </div>
+                <div className='py-20 text-center'>
+                    <div className="inline-block w-12 h-12 border-4 border-[#A621F3] border-t-transparent rounded-full animate-spin"></div>
+                    <p className='mt-4 text-gray-500'>Загружаем информацию о курсе</p>
+                </div>
+            </>
+        );
+    }
+    
+    if (!course || Object.keys(course).length === 0) {
+        return (
+            <>
+                <SeoTags seo={seo} />
+                <div className='mt-10 mb-16'>
+                    <h1 className='text-4xl xl:text-6xl font-bold'>Курс не найден</h1>
+                </div>
+                <div className='py-20 text-center'>
+                    <p className='text-gray-500 mb-4'>Курс с таким ID не существует</p>
+                    <a href={route('courses')} className='inline-block px-6 py-2 bg-[#A621F3] text-white rounded-lg hover:opacity-85 transition'>
+                        Вернуться к курсам
+                    </a>
+                </div>
+            </>
+        );
+    }
+    
     return (
         <>
             <SeoTags seo={seo} />
             
             <div className='mt-10 mb-16'>
-                <h1 className='text-4xl xl:text-6xl font-bold '>
-                    Пример показа курса
+                <h1 className='text-4xl xl:text-6xl font-bold'>
+                    {course.name || 'Курс'}
                 </h1>
             </div>
+            
             <div className='grid lg:grid-cols-[1fr_2fr] gap-8 mb-6'>
                 <div>
                     <div className='rounded-2xl overflow-hidden'>
-                        <img className='object-cover w-full' src="/img/slide-1.png" alt="" />
+                        {course.preview_url ? (
+                            <img 
+                                className='object-cover w-full' 
+                                src={course.preview_url} 
+                                alt={course.name} 
+                            />
+                        ) : (
+                            <div className='w-full aspect-video bg-gray-200 flex items-center justify-center'>
+                                <span className='text-gray-400'>Нет изображения</span>
+                            </div>
+                        )}
                     </div>
                 </div>
+                
                 <div className='flex flex-col gap-5'>
                     <div>
-                        <h2 className='text-2xl font-bold'>Название курса</h2>
+                        <h2 className='text-2xl font-bold'>{course.name}</h2>
                     </div>
-                    <div>
-                        <p>
-                            Lorem ipsum dolor sit, amet consectetur adipisicing elit. Quibusdam tenetur dolorem aut officiis repellendus soluta animi pariatur error. Harum itaque consequatur vero possimus veritatis, libero quaerat magnam nisi ullam porro.
-                            Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolores sit libero labore corporis aliquam exercitationem molestiae. Voluptate ut animi recusandae quos cupiditate quo, quaerat aperiam dolore perspiciatis at, explicabo tempore!
-                            Asperiores, dicta aliquam quisquam, minima commodi temporibus, ex non excepturi molestias perspiciatis est? Officia praesentium omnis excepturi nisi, commodi tempore dignissimos natus? Incidunt, sapiente quibusdam. Delectus laborum illum libero voluptates.
-                            Minus reiciendis laborum distinctio aut error excepturi adipisci, illo amet voluptas nam libero possimus nobis autem temporibus quam facilis sed alias quasi quia doloribus. Totam aperiam repellat ut nostrum praesentium?
-                            Enim impedit explicabo reprehenderit consectetur ullam odio quos possimus delectus, dicta laudantium recusandae id cumque, doloremque ratione! Quam soluta perspiciatis sapiente, quas hic unde minus. Magnam excepturi iure incidunt laudantium?
-                            Omnis nostrum architecto sint dolorum placeat, temporibus alias, quaerat aliquid quae distinctio reprehenderit quam ex libero odit unde voluptates iusto fugit officiis vitae saepe. Fugiat in perferendis ea illum fugit.
-                        </p>
+                    
+                    {course.description && (
+                        <div>
+                            <p className='text-gray-700'>{course.description}</p>
+                        </div>
+                    )}
+                    
+                    <div className='flex flex-col gap-2'>
+                        {course.start_date && course.end_date && (
+                            <div>
+                                <span className='font-medium'>Длительность: </span>
+                                <span>{rangeDate(course.start_date, course.end_date)}</span>
+                            </div>
+                        )}
+                        
+                        {course.price !== undefined && course.price !== null && (
+                            <div>
+                                <span className='font-medium'>Стоимость: </span>
+                                <span className='font-semibold'>{course.price} ₽</span>
+                            </div>
+                        )}
+                        
+                        {course.is_free && (
+                            <div>
+                                <span className='text-green-600 font-semibold'>Бесплатно</span>
+                            </div>
+                        )}
+                        
+                        {course.format_name && (
+                            <div>
+                                <span className='font-medium'>Формат: </span>
+                                <span>{course.format_name}</span>
+                            </div>
+                        )}
+                        
+                        {course.certificate_type_name && (
+                            <div>
+                                <span className='font-medium'>Сертификат: </span>
+                                <span>{course.certificate_type_name}</span>
+                            </div>
+                        )}
                     </div>
-                    <div>
-                        <span>Продолжительность (часов): <span className='font-semibold'>26</span></span>
-                    </div>
-                    <div>
-                        <a href='#'
-                            className={`flex w-fit py-4 px-12 rounded-xl font-bold text-white bg-[#A621F3] hover:opacity-85 hover:scale-105 transition duration-300 ease-linear`}
+                    
+                    {course.modules && course.modules.length > 0 && (
+                        <div className='mt-4'>
+                            <h3 className='text-xl font-bold mb-3'>Программа курса</h3>
+                            <div className='flex flex-col gap-2'>
+                                {course.modules.map((module, index) => (
+                                    <div key={module.id} className='p-3 bg-gray-50 rounded-lg'>
+                                        <span className='font-medium'>{index + 1}. {module.name}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                    
+                    <div className='mt-4'>
+                        <button
+                            className='flex w-fit py-4 px-12 rounded-xl font-bold text-white bg-[#A621F3] hover:opacity-85 hover:scale-105 transition duration-300 ease-linear'
                         >
-                            Узнать подробнее
-                        </a>
+                            Записаться на курс
+                        </button>
                     </div>
                 </div>
             </div>

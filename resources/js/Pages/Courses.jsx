@@ -7,6 +7,7 @@ import CustomSelect from '@/Components/CustomSelect';
 import SeoTags from '@/Components/Seo/SeoTags';
 import ModalHelps from '@/Components/ModalHelps';
 import { rangeDate } from '@/utils/rangeDate';
+import WebinarSkeleton from '@/Components/WebinarSkeleton';
 import axios from 'axios';
 
 const Courses = ({ seo, tags }) => {
@@ -190,20 +191,6 @@ const Courses = ({ seo, tags }) => {
         return () => window.removeEventListener('resize', handleLayout);
     }, []);
 
-    if (groupsData.length === 0) {
-        return (
-            <>
-                <SeoTags seo={seo} />
-                <div className='mt-10 mb-16'>
-                    <h1 className='text-4xl xl:text-6xl font-bold'>Все курсы</h1>
-                </div>
-                <div className='py-20 text-center'>
-                    <h3 className='text-xl font-medium text-gray-500'>Курсы загружаются...</h3>
-                </div>
-            </>
-        );
-    }
-
     return (
         <>
             <SeoTags seo={seo} />
@@ -300,6 +287,15 @@ const Courses = ({ seo, tags }) => {
 
                 {/* Основной контент */}
                 <main className='overflow-hidden pb-6'>
+                    {
+                        groupsData.length === 0 ? (
+                            <div className='grid grid-cols-3 gap-5'>
+                                <WebinarSkeleton />
+                                <WebinarSkeleton />
+                                <WebinarSkeleton />
+                            </div>
+                        ) : (null)
+                    }
                     {selectedCategories.length === 0 && !isFiltered ? (
                         <div className='flex flex-col gap-12'>
                             {groupsData.filter(g => g.courses.length > 0).map((group, index) => (

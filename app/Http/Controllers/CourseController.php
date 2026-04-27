@@ -181,12 +181,27 @@ class CourseController extends Controller
         }
     }
 
-    public function courseShow(Request $request)
+    public function courseShow(Request $request, $id)
     {
+        try {
+            $response = Http::withoutVerifying()
+                ->withHeaders([
+                    'X-API-KEY' => $this->config['key'],
+                    'Accept'    => 'application/json',
+                ])
+                ->get($this->config['url'] . '/course/public/' . $id);
+
+            $course = $response->ok() ? $response->json() : [];
+        } catch (\Exception $e) {
+            $course = [];
+            Log::error("Failed to fetch course: " . $e->getMessage());
+        }
+
         return Inertia::render('CourseShow', [
-            'seo' => [
-                'title' => 'Каталог всех курсов',
-                'description' => 'Выберите подходящий курс: от разработки на Laravel до инклюзивного образования.',
+            'course' => $course,
+            'seo' => fn() => [
+                'title' => is_array($course) && isset($course['name']) ? $course['name'] : 'Курс',
+                'description' => is_array($course) && isset($course['description']) ? $course['description'] : 'Информация о курсе',
             ]
         ]);
     }

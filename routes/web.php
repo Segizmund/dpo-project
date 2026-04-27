@@ -12,7 +12,7 @@ Route::get('/webinars/{id}/show', [CourseController::class, 'webinarShow'])->nam
 
 Route::get('/courses', [CourseController::class, 'courses'])->name('courses');
 Route::get('/courses/by-tag', [CourseController::class, 'getCoursesByTag'])->name('courses.by-tag');
-Route::get('/courses/{id}/show', [CourseController::class, 'courseShow'])->name('course.show');
+Route::get('/courses/{id}', [CourseController::class, 'courseShow'])->name('course.show');
 
 Route::get('/about-us', [CourseController::class, 'aboutUs'])->name('about-us');
 Route::get('/contacts', [CourseController::class, 'contacts'])->name('contacts');
