@@ -357,9 +357,9 @@ const Courses = ({ seo, tags }) => {
                                                 <span className='font-medium'>{course.price} ₽</span>
                                             </div>
                                             <div className='flex flex-col px-4 py-2.5 rounded-2xl gap-2 z-10 absolute right-2.5 top-2.5 w-fit max-w-[calc(100%-20px)] bg-white/90 backdrop-blur-sm'>
-                                                <span className='font-medium'>{course.price} ₽</span>
+                                                <span className='font-medium'>{course.parent_group_id}</span>
                                             </div>
-                                            <div className='relative rounded-2xl overflow-hidden aspect-video bg-gray-100'>
+                                            <div className='relative rounded-2xl overflow-hidden aspect-video bg-gray-100 h-[350px]'>
                                                 {course.preview_url ? (
                                                     <img 
                                                         src={course.preview_url} 
