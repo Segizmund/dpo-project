@@ -11,7 +11,6 @@ import WebinarSkeleton from '@/Components/WebinarSkeleton';
 import axios from 'axios';
 
 const Courses = ({ seo, tags }) => {
-    // Преобразуем tags в массив групп
     const [groupsData, setGroupsData] = useState(() => {
         if (!tags) return [];
         return Object.entries(tags).map(([groupName, items]) => ({
