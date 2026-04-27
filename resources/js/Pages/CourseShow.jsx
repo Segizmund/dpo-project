@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
+import { Link } from '@inertiajs/react';
 import PageLayout from '@/Layouts/PageLayout';
 import SeoTags from '@/Components/Seo/SeoTags';
 import { rangeDate } from '@/utils/rangeDate';
 
 const CourseShow = ({ seo, course: apiCourse }) => {
+    console.log(apiCourse)
     const [course, setCourse] = useState(null);
     const [loading, setLoading] = useState(true);
     
@@ -35,14 +37,16 @@ const CourseShow = ({ seo, course: apiCourse }) => {
         return (
             <>
                 <SeoTags seo={seo} />
-                <div className='mt-10 mb-16'>
+                <div className='my-10'>
                     <h1 className='text-4xl xl:text-6xl font-bold'>Курс не найден</h1>
+                </div>
+                <div>
                 </div>
                 <div className='py-20 text-center'>
                     <p className='text-gray-500 mb-4'>Курс с таким ID не существует</p>
-                    <a href={route('courses')} className='inline-block px-6 py-2 bg-[#A621F3] text-white rounded-lg hover:opacity-85 transition'>
+                    <Link href={route('courses')} className='inline-block px-6 py-2 bg-[#A621F3] text-white rounded-lg hover:opacity-85 transition'>
                         Вернуться к курсам
-                    </a>
+                    </Link>
                 </div>
             </>
         );
@@ -52,12 +56,17 @@ const CourseShow = ({ seo, course: apiCourse }) => {
         <>
             <SeoTags seo={seo} />
             
-            <div className='mt-10 mb-16'>
+            <div className='my-10'>
                 <h1 className='text-4xl xl:text-6xl font-bold'>
                     {course.name || 'Курс'}
                 </h1>
             </div>
-            
+            <Link href={route('courses')} className='flex items-center gap-2 mb-5 group hover:text-[#A621F3] w-fit transition duration-300 ease-linear'>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="group-hover:scale-110 transition duration-300 ease-linear" viewBox="0 0 16 16">
+                    <path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0m3.5 7.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5z"/>
+                </svg>
+                Назад к курсам
+            </Link>
             <div className='grid lg:grid-cols-[1fr_2fr] gap-8 mb-6'>
                 <div>
                     <div className='rounded-2xl overflow-hidden'>
@@ -81,8 +90,9 @@ const CourseShow = ({ seo, course: apiCourse }) => {
                     </div>
                     
                     {course.description && (
-                        <div>
-                            <p className='text-gray-700'>{course.description}</p>
+                        <div className='flex flex-col gap-3'>
+                            <h3 className='text-xl font-bold' >Описание:</h3>
+                            <p className='text-gray-700 ps-2.5'>{course.description}</p>
                         </div>
                     )}
                     
