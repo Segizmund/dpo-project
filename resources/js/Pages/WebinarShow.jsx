@@ -156,7 +156,7 @@ const WebinarShow = ({ seo, webinar }) => {
                         <button
                             className='flex w-fit py-4 px-12 rounded-xl font-bold text-white bg-[#A621F3] hover:opacity-85 hover:scale-105 transition duration-300 ease-linear'
                         >
-                            Записаться на курс
+                            Записаться на вебинар
                         </button>
                     </div>
                 </div>

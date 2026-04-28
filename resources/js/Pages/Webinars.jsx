@@ -22,7 +22,6 @@ const categories = [
 ];
 
 const Webinars = ({seo, webinars, nextCursor, type}) => {
-    console.log(webinars)
     const [list, setList] = useState(webinars);
     const [loading, setLoading] = useState(false);
     const [currentCursor, setCurrentCursor] = useState(nextCursor);
@@ -88,50 +87,46 @@ const Webinars = ({seo, webinars, nextCursor, type}) => {
     }, [list, selectedCategories, selectedSpeakers, searchQuery]);
 
     const handleLoadMore = async () => {
-        if (!currentCursor || loading) return;
+    if (!currentCursor || loading) return;
+    
+    console.log('Loading more with cursor:', currentCursor);
+    setLoading(true);
+
+    try {
+        const response = await axios.get('/webinars/load-more', {
+            params: { 
+                cursor: currentCursor,
+                limit: 3 
+            },
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+
+        console.log('Response data:', response.data);
         
-        console.log('Loading more with cursor:', currentCursor); // Отладка
-        setLoading(true);
+        const { webinars: newWebinars, next_cursor: newCursor } = response.data;
 
-        try {
-            const response = await axios.get('/webinars/load-more', {
-                params: { 
-                    cursor: currentCursor,
-                    limit: 3 
-                }
+        if (newWebinars && newWebinars.length > 0) {
+            setList(prev => {
+                const existingIds = new Set(prev.map(item => item.id));
+                const uniqueNew = newWebinars.filter(item => !existingIds.has(item.id));
+                return [...prev, ...uniqueNew];
             });
-
-            console.log('Response data:', response.data); // Отладка
-
-            const { webinars: newWebinars, next_cursor: newCursor } = response.data;
-
-            if (newWebinars && newWebinars.length > 0) {
-                console.log('Adding new webinars:', newWebinars.length);
-                setList(prev => {
-                    const existingIds = new Set(prev.map(item => item.id));
-                    const uniqueNew = newWebinars.filter(item => !existingIds.has(item.id));
-                    console.log('Unique new webinars:', uniqueNew.length);
-                    return [...prev, ...uniqueNew];
-                });
-            } else {
-                console.log('No new webinars received');
-            }
-            
-            setCurrentCursor(newCursor);
-            console.log('New cursor:', newCursor);
-        } catch (error) {
-            console.error("Ошибка загрузки вебинаров:", error);
-            if (error.response) {
-                console.error('Response status:', error.response.status);
-                console.error('Response data:', error.response.data);
-            }
-        } finally {
-            setLoading(false);
         }
-    };
+        
+        setCurrentCursor(newCursor);
+    } catch (error) {
+        console.error("Ошибка загрузки вебинаров:", error);
+    } finally {
+        setLoading(false);
+    }
+};
 
     const visibleCategories = showAllCats ? categories : categories.slice(0, limit);
-    const visibleWebinars = filteredWebinars.slice(0, webinarsLimit);
+    const visibleWebinars = filteredWebinars;
+    console.log(filteredWebinars)
 
     useEffect(() => {
         const handleLayout = () => {

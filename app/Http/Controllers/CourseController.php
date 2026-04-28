@@ -20,11 +20,10 @@ class CourseController extends Controller
     }
 
     public function index(Request $request)
-    {
-        $limit = $request->input('limit', 9);
+{
+    $limit = $request->input('limit', 9);
 
-        $allExternalData = [];
-
+    try {
         $responses = Http::pool(fn (Pool $pool) => [
             $pool->as('it')->withoutVerifying()->withHeaders(['X-API-KEY' => $this->config['key']])
                 ->get($this->config['url'] . '/course/public', ['course_tag' => 'Войти в IT']),
@@ -35,18 +34,40 @@ class CourseController extends Controller
             $pool->as('skill')->withoutVerifying()->withHeaders(['X-API-KEY' => $this->config['key']])
                 ->get($this->config['url'] . '/course/public', ['course_tag' => 'Освоить навык']),
         ]);
-
-
-        return Inertia::render('Welcome', [
-            'entry'      => (isset($responses['it']) && $responses['it']->ok()) ? $responses['it']->json() : [],
-            'helpChoose' => (isset($responses['zero']) && $responses['zero']->ok()) ? $responses['zero']->json() : [],
-            'learnSkill' => (isset($responses['skill']) && $responses['skill']->ok()) ? $responses['skill']->json() : [],
-            'seo' => fn() => [
-                'title' => 'Главная',
-                'description' => 'Добро пожаловать на платформу дополнительного профессионального образования. Обучаем IT-профессиям и современным методикам педагогики.',
-            ]
-        ]);
+        
+        $getDataSafely = function($response) {
+            if (!$response || $response instanceof \Exception) {
+                return [];
+            }
+            
+            if (method_exists($response, 'ok') && $response->ok()) {
+                return $response->json();
+            }
+            
+            return [];
+        };
+        
+        $entryData = $getDataSafely($responses['it'] ?? null);
+        $helpChooseData = $getDataSafely($responses['zero'] ?? null);
+        $learnSkillData = $getDataSafely($responses['skill'] ?? null);
+        
+    } catch (\Exception $e) {
+        \Log::error("Pool request failed: " . $e->getMessage());
+        $entryData = [];
+        $helpChooseData = [];
+        $learnSkillData = [];
     }
+
+    return Inertia::render('Welcome', [
+        'entry'      => $entryData,
+        'helpChoose' => $helpChooseData,
+        'learnSkill' => $learnSkillData,
+        'seo' => fn() => [
+            'title' => 'Главная',
+            'description' => 'Добро пожаловать на платформу дополнительного профессионального образования. Обучаем IT-профессиям и современным методикам педагогики.',
+        ]
+    ]);
+}
 
     public function webinars(Request $request)
     {
