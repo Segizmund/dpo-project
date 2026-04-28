@@ -1,4 +1,4 @@
-import {usePage, Link, router} from '@inertiajs/react';
+import {Link} from '@inertiajs/react';
 import axios from 'axios';
 import { useState, useMemo, useEffect } from 'react';
 import PageLayout from '@/Layouts/PageLayout';
@@ -21,7 +21,7 @@ const categories = [
     { id: 'agriculture', label: 'Земледелие' },
 ];
 
-const Webinars = ({seo, webinars, nextCursor,}) => {
+const Webinars = ({seo, webinars, nextCursor, type}) => {
     console.log(webinars)
     const [list, setList] = useState(webinars);
     const [loading, setLoading] = useState(false);
@@ -31,14 +31,11 @@ const Webinars = ({seo, webinars, nextCursor,}) => {
     const [selectedCategories, setSelectedCategories] = useState([]);
     const [selectedSpeakers, setSelectedSpeakers] = useState([]);
 
-    const { url } = usePage();
-    const isFree = url.includes('webinars-free');
-
     const [showAllCats, setShowAllCats] = useState(false);
     const [showAllSpeak, setShowAllSpeak] = useState(false);
     const [limit, setLimit] = useState(5);
 
-    const WEBINARS_PER_PAGE = 9
+    const WEBINARS_PER_PAGE = 9;
     const [webinarsLimit, setWebinarsLimit] = useState(WEBINARS_PER_PAGE);
 
     const [isCatsOpen, setIsCatsOpen] = useState(true);
@@ -92,31 +89,42 @@ const Webinars = ({seo, webinars, nextCursor,}) => {
 
     const handleLoadMore = async () => {
         if (!currentCursor || loading) return;
+        
+        console.log('Loading more with cursor:', currentCursor); // Отладка
         setLoading(true);
 
         try {
-            const response = await axios.get(window.location.pathname, {
-                params: { cursor: currentCursor },
-                headers: {
-                    'X-Inertia': 'true',
-                    'X-Inertia-Partial-Data': 'webinars,nextCursor',
-                    'X-Inertia-Partial-Component': 'Webinars'
+            const response = await axios.get('/webinars/load-more', {
+                params: { 
+                    cursor: currentCursor,
+                    limit: 3 
                 }
             });
 
-            const { webinars: newWebinars, nextCursor: newCursor } = response.data.props;
+            console.log('Response data:', response.data); // Отладка
+
+            const { webinars: newWebinars, next_cursor: newCursor } = response.data;
 
             if (newWebinars && newWebinars.length > 0) {
+                console.log('Adding new webinars:', newWebinars.length);
                 setList(prev => {
                     const existingIds = new Set(prev.map(item => item.id));
                     const uniqueNew = newWebinars.filter(item => !existingIds.has(item.id));
+                    console.log('Unique new webinars:', uniqueNew.length);
                     return [...prev, ...uniqueNew];
                 });
+            } else {
+                console.log('No new webinars received');
             }
             
             setCurrentCursor(newCursor);
+            console.log('New cursor:', newCursor);
         } catch (error) {
             console.error("Ошибка загрузки вебинаров:", error);
+            if (error.response) {
+                console.error('Response status:', error.response.status);
+                console.error('Response data:', error.response.data);
+            }
         } finally {
             setLoading(false);
         }
@@ -130,13 +138,8 @@ const Webinars = ({seo, webinars, nextCursor,}) => {
             const isMobile = window.innerWidth <= 1023;
             
             if (isMobile) {
-                if (searchQuery.length > 0) {
-                    setIsCatsOpen(false);
-                    setIsSpeakersOpen(false);
-                } else {
-                    setIsCatsOpen(false);
-                    setIsSpeakersOpen(false);
-                }
+                setIsCatsOpen(false);
+                setIsSpeakersOpen(false);
             } else {
                 setIsCatsOpen(true);
                 setIsSpeakersOpen(true);
@@ -144,10 +147,8 @@ const Webinars = ({seo, webinars, nextCursor,}) => {
         };
 
         handleLayout();
-
         window.addEventListener('resize', handleLayout);
         return () => window.removeEventListener('resize', handleLayout);
-        
     }, [searchQuery]);
 
     useEffect(() => {
@@ -161,7 +162,7 @@ const Webinars = ({seo, webinars, nextCursor,}) => {
             
             <div className='mt-10 mb-16'>
                 <h1 className='text-4xl xl:text-6xl font-bold '>
-                    {isFree ? 'Бесплатные' : 'Платные'} вебинары
+                    {type === 'free' ? 'Бесплатные' : 'Платные'} вебинары
                 </h1>
             </div>
 
@@ -207,7 +208,6 @@ const Webinars = ({seo, webinars, nextCursor,}) => {
                     <path d="M14.0008 13.9998L11.1074 11.1064" stroke="#9C9C9C" strokeLinecap="round" strokeLinejoin="round"/>
                     <path d="M7.33333 12.6667C10.2789 12.6667 12.6667 10.2789 12.6667 7.33333C12.6667 4.38781 10.2789 2 7.33333 2C4.38781 2 2 4.38781 2 7.33333C2 10.2789 4.38781 12.6667 7.33333 12.6667Z" stroke="#9C9C9C" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
-
             </div>
 
             <div className='grid lg:grid-cols-[20%_auto] xl:grid-cols-[300px_1fr] gap-12 border-t border-black py-6'>
@@ -228,7 +228,6 @@ const Webinars = ({seo, webinars, nextCursor,}) => {
                             </svg>
                         </button>
 
-                        {/* Контейнер аккордеона для всего блока */}
                         <div className={`grid transition-all duration-300 ease-in-out ${isCatsOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
                             <div className="overflow-hidden">
                                 <div className='flex flex-col gap-4'>
@@ -314,7 +313,7 @@ const Webinars = ({seo, webinars, nextCursor,}) => {
                 <main>
                     <div className='flex justify-between items-center mb-10'>
                         <h2 className='text-3xl font-bold '>
-                            {filteredWebinars.length} Вебинара
+                            {filteredWebinars.length} {getDeclension(filteredWebinars.length, 'Вебинар', 'Вебинара', 'Вебинаров')}
                         </h2>
                     </div>
 
@@ -325,11 +324,10 @@ const Webinars = ({seo, webinars, nextCursor,}) => {
                                     <div className='flex flex-col gap-4 '>
                                         <div className='relative rounded-2xl overflow-hidden aspect-video bg-gray-100'>
                                             {webinar.preview_url === null ? (
-                                                    <div className='absolute h-full w-full bg-gray-400'></div>
-                                                ) : (
-                                                    <img src={webinar.preview_url} alt={webinar.name} className='object-cover w-full h-full group-hover:scale-105 transition duration-500' />
-                                                )
-                                            }
+                                                <div className='absolute h-full w-full bg-gray-400'></div>
+                                            ) : (
+                                                <img src={webinar.preview_url} alt={webinar.name} className='object-cover w-full h-full group-hover:scale-105 transition duration-500' />
+                                            )}
                                             
                                             <div className='absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 p-5'>
                                                 <div className='absolute w-full h-full left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gray-500/20 backdrop-blur-sm'></div>
@@ -343,7 +341,7 @@ const Webinars = ({seo, webinars, nextCursor,}) => {
 
                                     {webinar.speakers && (
                                         <>
-                                            {webinar.speakers.map((speaker, index) => (
+                                            {webinar.speakers.map((speaker) => (
                                                 <div key={speaker.id} className='flex items-center gap-2 text-sm'>
                                                     <span className='opacity-60'>Спикер</span>
                                                     <span className='font-semibold'>{speaker.first_name} {speaker.last_name}</span>
@@ -377,7 +375,6 @@ const Webinars = ({seo, webinars, nextCursor,}) => {
                                     <path d="M3 12C3 14.3869 3.94821 16.6761 5.63604 18.364C7.32387 20.0518 9.61305 21 12 21C14.516 20.9905 16.931 20.0088 18.74 18.26L21 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                                     <path d="M16 16H21V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                                 </svg>
-
                                 Показать еще
                             </button>
                         </div>
@@ -388,6 +385,22 @@ const Webinars = ({seo, webinars, nextCursor,}) => {
         </>
     );
 };
+
+function getDeclension(number, one, two, five) {
+    let n = Math.abs(number);
+    n %= 100;
+    if (n >= 5 && n <= 20) {
+        return five;
+    }
+    n %= 10;
+    if (n === 1) {
+        return one;
+    }
+    if (n >= 2 && n <= 4) {
+        return two;
+    }
+    return five;
+}
 
 Webinars.layout = page => <PageLayout children={page} />;
 

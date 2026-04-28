@@ -3,8 +3,8 @@ import { useState } from 'react';
 import CustomSelect from './CustomSelect';
 
 const helpLinks = [
-    { label: 'Бесплатно', href: '/webinars-free' },
-    { label: 'Платно', href: '/webinars-paid' }
+    { label: 'Бесплатно', href: '/webinars?type=free' },
+    { label: 'Платно', href: '/webinars?type=paid' }
 ];
 
 export default function Header({isHome}) {

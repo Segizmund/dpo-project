@@ -48,8 +48,14 @@ class CourseController extends Controller
         ]);
     }
 
-    public function webinars_free(Request $request)
+    public function webinars(Request $request)
     {
+        $type = $request->query('type', 'free');
+        
+        if (!in_array($type, ['free', 'paid'])) {
+            $type = 'free';
+        }
+        
         $cursor = $request->input('cursor'); 
         $limit = $request->input('limit', 3);
 
@@ -73,20 +79,25 @@ class CourseController extends Controller
             $data = ['webinars' => [], 'next_cursor' => null];
         }
 
+        $seoData = $type === 'free' ? [
+            'title' => 'Бесплатные вебинары',
+            'description' => 'Смотрите бесплатные уроки от экспертов.',
+        ] : [
+            'title' => 'Платные вебинары',
+            'description' => 'Углубленные программы обучения с практикой и обратной связью от менторов.',
+        ];
+
         return Inertia::render('Webinars', [
             'webinars'   => $data['webinars'] ?? [],
             'nextCursor' => $data['next_cursor'] ?? null,
-            'seo' => fn() => [
-                'title' => 'Бесплатные вебинары',
-                'description' => 'Смотрите бесплатные уроки от экспертов.',
-            ],
-            'type' => 'free'
+            'seo' => fn() => $seoData,
+            'type' => $type
         ]);
     }
 
-    public function webinars_paid(Request $request)
+    public function loadMoreWebinars(Request $request)
     {
-        $cursor = $request->input('cursor'); 
+        $cursor = $request->input('cursor');
         $limit = $request->input('limit', 3);
 
         try {
@@ -94,7 +105,7 @@ class CourseController extends Controller
                 ->timeout(10)
                 ->withHeaders([
                     'X-API-KEY' => $this->config['key'],
-                    'Accept'    => 'application/json',
+                    'Accept' => 'application/json',
                 ])->get($this->config['url'] . '/webinar/public/', [
                     'limit' => (int) $limit,
                     'next_cursor' => $cursor,
@@ -104,20 +115,18 @@ class CourseController extends Controller
                 ? $response->json() 
                 : ['webinars' => [], 'next_cursor' => null];
 
+            return response()->json([
+                'webinars' => $data['webinars'] ?? [],
+                'next_cursor' => $data['next_cursor'] ?? null,
+            ]);
+
         } catch (\Exception $e) {
             \Log::error("Webinars API Error: " . $e->getMessage());
-            $data = ['webinars' => [], 'next_cursor' => null];
+            return response()->json([
+                'webinars' => [],
+                'next_cursor' => null,
+            ], 500);
         }
-
-        return Inertia::render('Webinars', [
-            'webinars'   => $data['webinars'] ?? [],
-            'nextCursor' => $data['next_cursor'] ?? null,
-            'seo' => fn() => [
-                'title' => 'Платные вебинары',
-                'description' => 'Углубленные программы обучения с практикой и обратной связью от менторов.',
-            ],
-            'type' => 'paid'
-        ]);
     }
 
     public function courses(Request $request)
