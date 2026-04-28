@@ -6,8 +6,8 @@ use Inertia\Inertia;
 
 Route::get('/', [CourseController::class, 'index'])->name('home');
 
-Route::get('/webinars', [CourseController::class, 'webinars']);
-Route::get('/webinars/{id}/show', [CourseController::class, 'webinarShow'])->name('webinar.show');
+Route::get('/webinars', [CourseController::class, 'webinars'])->name('webinars');;
+Route::get('/webinars/{id}', [CourseController::class, 'webinarShow'])->name('webinar.show');
 Route::get('/webinars/load-more', [CourseController::class, 'loadMoreWebinars'])->name('webinars.load-more');
 
 Route::get('/courses', [CourseController::class, 'courses'])->name('courses');

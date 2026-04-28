@@ -215,12 +215,26 @@ class CourseController extends Controller
         ]);
     }
 
-    public function webinarShow(Request $request)
+    public function webinarShow(Request $request, $id)
     {
+        try {
+            $response = Http::withoutVerifying()
+                ->withHeaders([
+                    'X-API-KEY' => $this->config['key'],
+                    'Accept'    => 'application/json',
+                ])
+                ->get($this->config['url'] . '/webinar/public/' . $id);
+
+            $webinar = $response->ok() ? $response->json() : [];
+        } catch (\Exception $e) {
+            $webinar = [];
+            Log::error("Failed to fetch webinar: " . $e->getMessage());
+        }
         return Inertia::render('WebinarShow', [
-            'seo' => [
-                'title' => 'Каталог всех курсов',
-                'description' => 'Выберите подходящий курс: от разработки на Laravel до инклюзивного образования.',
+            'webinar' => $webinar,
+            'seo' => fn() => [
+                'title' => is_array($webinar) && isset($webinar['name']) ? $webinar['name'] : 'Вебинар',
+                'description' => is_array($webinar) && isset($webinar['description']) ? $webinar['description'] : 'Информация о Вебинаре',
             ]
         ]);
     }
