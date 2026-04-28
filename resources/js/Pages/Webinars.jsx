@@ -8,19 +8,6 @@ import SubscribeBox from '@/Components/SubscribeBox';
 import SeoTags from '@/Components/Seo/SeoTags';
 import WebinarSkeleton from '@/Components/WebinarSkeleton';
 
-const categories = [
-    { id: 'dev', label: 'Программирование' },
-    { id: 'design', label: 'Дизайн' },
-    { id: 'marketing', label: 'Маркетинг' },
-    { id: 'pedagogy', label: 'Педагогика' },
-    { id: 'management', label: 'Менеджмент' },
-    { id: 'spo', label: 'СПО' },
-    { id: 'pre-courses', label: 'Подготовительные курсы' },
-    { id: 'economy', label: 'Экономика' },
-    { id: 'fpv', label: 'Разработка FPV' },
-    { id: 'agriculture', label: 'Земледелие' },
-];
-
 const Webinars = ({seo, webinars, nextCursor, type}) => {
     const [list, setList] = useState(webinars);
     const [loading, setLoading] = useState(false);
@@ -33,9 +20,6 @@ const Webinars = ({seo, webinars, nextCursor, type}) => {
     const [showAllCats, setShowAllCats] = useState(false);
     const [showAllSpeak, setShowAllSpeak] = useState(false);
     const [limit, setLimit] = useState(5);
-
-    const WEBINARS_PER_PAGE = 9;
-    const [webinarsLimit, setWebinarsLimit] = useState(WEBINARS_PER_PAGE);
 
     const [isCatsOpen, setIsCatsOpen] = useState(true);
     const [isSpeakersOpen, setIsSpeakersOpen] = useState(true);
@@ -51,6 +35,25 @@ const Webinars = ({seo, webinars, nextCursor, type}) => {
             prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
         );
     };
+
+    const dynamicCategories = useMemo(() => {
+        const categoriesMap = new Map();
+        
+        list.forEach(webinar => {
+            if (webinar.tag) {
+                const categoryId = webinar.tag.toLowerCase().replace(/\s+/g, '-');
+                if (!categoriesMap.has(categoryId)) {
+                    categoriesMap.set(categoryId, {
+                        id: categoryId,
+                        label: webinar.tag,
+                        originalTag: webinar.tag
+                    });
+                }
+            }
+        });
+        
+        return Array.from(categoriesMap.values());
+    }, [list]);
 
     const dynamicSpeakers = useMemo(() => {
         const speakersMap = new Map();
@@ -74,7 +77,10 @@ const Webinars = ({seo, webinars, nextCursor, type}) => {
     const filteredWebinars = useMemo(() => {
         return list.filter(webinar => {
             const matchesCategory = selectedCategories.length === 0 || 
-                                    selectedCategories.includes(webinar.category_id);
+                                    selectedCategories.some(catId => {
+                                        const webinarCategoryId = webinar.tag?.toLowerCase().replace(/\s+/g, '-');
+                                        return catId === webinarCategoryId;
+                                    });
 
             const matchesSpeaker = selectedSpeakers.length === 0 || 
                                webinar.speakers?.some(s => selectedSpeakers.includes(s.id));
@@ -87,46 +93,45 @@ const Webinars = ({seo, webinars, nextCursor, type}) => {
     }, [list, selectedCategories, selectedSpeakers, searchQuery]);
 
     const handleLoadMore = async () => {
-    if (!currentCursor || loading) return;
-    
-    console.log('Loading more with cursor:', currentCursor);
-    setLoading(true);
-
-    try {
-        const response = await axios.get('/webinars/load-more', {
-            params: { 
-                cursor: currentCursor,
-                limit: 3 
-            },
-            headers: {
-                'Accept': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        });
-
-        console.log('Response data:', response.data);
+        if (!currentCursor || loading) return;
         
-        const { webinars: newWebinars, next_cursor: newCursor } = response.data;
+        console.log('Loading more with cursor:', currentCursor);
+        setLoading(true);
 
-        if (newWebinars && newWebinars.length > 0) {
-            setList(prev => {
-                const existingIds = new Set(prev.map(item => item.id));
-                const uniqueNew = newWebinars.filter(item => !existingIds.has(item.id));
-                return [...prev, ...uniqueNew];
+        try {
+            const response = await axios.get('/webinars/load-more', {
+                params: { 
+                    cursor: currentCursor,
+                    limit: 3 
+                },
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
             });
-        }
-        
-        setCurrentCursor(newCursor);
-    } catch (error) {
-        console.error("Ошибка загрузки вебинаров:", error);
-    } finally {
-        setLoading(false);
-    }
-};
 
-    const visibleCategories = showAllCats ? categories : categories.slice(0, limit);
+            console.log('Response data:', response.data);
+            
+            const { webinars: newWebinars, next_cursor: newCursor } = response.data;
+
+            if (newWebinars && newWebinars.length > 0) {
+                setList(prev => {
+                    const existingIds = new Set(prev.map(item => item.id));
+                    const uniqueNew = newWebinars.filter(item => !existingIds.has(item.id));
+                    return [...prev, ...uniqueNew];
+                });
+            }
+            
+            setCurrentCursor(newCursor);
+        } catch (error) {
+            console.error("Ошибка загрузки вебинаров:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const visibleCategories = showAllCats ? dynamicCategories : dynamicCategories.slice(0, limit);
     const visibleWebinars = filteredWebinars;
-    console.log(filteredWebinars)
 
     useEffect(() => {
         const handleLayout = () => {
@@ -144,7 +149,7 @@ const Webinars = ({seo, webinars, nextCursor, type}) => {
         handleLayout();
         window.addEventListener('resize', handleLayout);
         return () => window.removeEventListener('resize', handleLayout);
-    }, [searchQuery]);
+    }, []);
 
     useEffect(() => {
         setList(webinars);
@@ -180,7 +185,7 @@ const Webinars = ({seo, webinars, nextCursor, type}) => {
                     </button>
                 ))}
 
-                {categories.length > limit && (
+                {dynamicCategories.length > limit && (
                     <button 
                         onClick={() => setShowAllCats(!showAllCats)}
                         className="px-4 py-2.5 rounded-full transition duration-300 ease-linear font-medium border border-black hover:bg-[#A621F3] hover:text-white hover:border-[#A621F3]"
@@ -209,99 +214,103 @@ const Webinars = ({seo, webinars, nextCursor, type}) => {
                 {/* ЛЕВАЯ ПАНЕЛЬ */}
                 <aside className='flex flex-col gap-8'>
                     {/* БЛОК КАТЕГОРИЙ */}
-                    <div className='border-b border-black pb-8'>
-                        <button 
-                            onClick={() => setIsCatsOpen(!isCatsOpen)}
-                            className='flex items-center justify-between w-full text-left mb-4 group'
-                        >
-                            <h3 className='text-xl font-bold tracking-wider'>Тематика</h3>
-                            <svg 
-                                className={`transform transition-transform duration-300 ${isCatsOpen ? 'rotate-180' : ''}`} 
-                                width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
+                    {dynamicCategories.length > 0 && (
+                        <div className='border-b border-black pb-8'>
+                            <button 
+                                onClick={() => setIsCatsOpen(!isCatsOpen)}
+                                className='flex items-center justify-between w-full text-left mb-4 group'
                             >
-                                <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                        </button>
+                                <h3 className='text-xl font-bold tracking-wider'>Тематика</h3>
+                                <svg 
+                                    className={`transform transition-transform duration-300 ${isCatsOpen ? 'rotate-180' : ''}`} 
+                                    width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
+                                >
+                                    <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round"/>
+                                </svg>
+                            </button>
 
-                        <div className={`grid transition-all duration-300 ease-in-out ${isCatsOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
-                            <div className="overflow-hidden">
-                                <div className='flex flex-col gap-4'>
-                                    {categories.slice(0, limit).map(cat => (
-                                        <CategoryItem key={cat.id} item={cat} selected={selectedCategories} toggle={toggleCategory} />
-                                    ))}
-                                    <div className={`grid transition-all duration-300 ease-linear ${showAllCats ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
-                                        <div className="overflow-hidden">
-                                            <div className='flex flex-col gap-4 pt-4'>
-                                                {categories.slice(limit).map(cat => (
-                                                    <CategoryItem key={cat.id} item={cat} selected={selectedCategories} toggle={toggleCategory} />
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {categories.length > limit && (
-                                        <button onClick={() => setShowAllCats(!showAllCats)} className="mt-2 font-bold hover:text-[#A621F3] flex items-center gap-2 text-sm">
-                                            {showAllCats ? 'Скрыть' : `Еще ${categories.length - limit}`}
-                                            <span className={`transform transition-transform duration-300 ${showAllCats ? '-rotate-180' : ''}`}>
-                                                <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                                                    <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round"/>
-                                                </svg>
-                                            </span>
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    {/* БЛОК СПИКЕРОВ */}
-                    <div className='border-b border-black pb-8'>
-                        <button 
-                            onClick={() => setIsSpeakersOpen(!isSpeakersOpen)}
-                            className='flex items-center justify-between w-full text-left mb-4 group'
-                        >
-                            <h3 className='text-xl font-bold tracking-wider'>Спикеры</h3>
-                            <svg 
-                                className={`transform transition-transform duration-300 ${isSpeakersOpen ? 'rotate-180' : ''}`} 
-                                width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
-                            >
-                                <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                        </button>
-
-                        <div className={`grid transition-all duration-300 ${isSpeakersOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
-                            <div className="overflow-hidden">
-                                <div className='flex flex-col gap-4'>
-                                    {dynamicSpeakers.slice(0, limit).map(speaker => (
-                                        <SpeakerItem key={speaker.id} item={speaker} selected={selectedSpeakers} toggle={toggleSpeaker} />
-                                    ))}
-
-                                    {dynamicSpeakers.length > limit && (
-                                        <div className={`grid transition-all duration-300 ${showAllSpeak ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+                            <div className={`grid transition-all duration-300 ease-in-out ${isCatsOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+                                <div className="overflow-hidden">
+                                    <div className='flex flex-col gap-4'>
+                                        {dynamicCategories.slice(0, limit).map(cat => (
+                                            <CategoryItem key={cat.id} item={cat} selected={selectedCategories} toggle={toggleCategory} />
+                                        ))}
+                                        <div className={`grid transition-all duration-300 ease-linear ${showAllCats ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
                                             <div className="overflow-hidden">
                                                 <div className='flex flex-col gap-4 pt-4'>
-                                                    {dynamicSpeakers.slice(limit).map(speaker => (
-                                                        <SpeakerItem key={speaker.id} item={speaker} selected={selectedSpeakers} toggle={toggleSpeaker} />
+                                                    {dynamicCategories.slice(limit).map(cat => (
+                                                        <CategoryItem key={cat.id} item={cat} selected={selectedCategories} toggle={toggleCategory} />
                                                     ))}
                                                 </div>
                                             </div>
                                         </div>
-                                    )}
-                                    
-                                    {dynamicSpeakers.length > limit && (
-                                        <button onClick={() => setShowAllSpeak(!showAllSpeak)} className="mt-2 font-bold hover:text-[#A621F3] flex items-center gap-2 text-sm">
-                                            {showAllSpeak ? 'Скрыть' : `Еще ${dynamicSpeakers.length - limit}`}
-                                            <span className={`transform transition-transform duration-300 ${showAllSpeak ? '-rotate-180' : ''}`}>
-                                                <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                                                    <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round"/>
-                                                </svg>
-                                            </span>
-                                        </button>
-                                    )}
+
+                                        {dynamicCategories.length > limit && (
+                                            <button onClick={() => setShowAllCats(!showAllCats)} className="mt-2 font-bold hover:text-[#A621F3] flex items-center gap-2 text-sm">
+                                                {showAllCats ? 'Скрыть' : `Еще ${dynamicCategories.length - limit}`}
+                                                <span className={`transform transition-transform duration-300 ${showAllCats ? '-rotate-180' : ''}`}>
+                                                    <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                                                        <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round"/>
+                                                    </svg>
+                                                </span>
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    )}
+                    
+                    {/* БЛОК СПИКЕРОВ */}
+                    {dynamicSpeakers.length > 0 && (
+                        <div className='border-b border-black pb-8'>
+                            <button 
+                                onClick={() => setIsSpeakersOpen(!isSpeakersOpen)}
+                                className='flex items-center justify-between w-full text-left mb-4 group'
+                            >
+                                <h3 className='text-xl font-bold tracking-wider'>Спикеры</h3>
+                                <svg 
+                                    className={`transform transition-transform duration-300 ${isSpeakersOpen ? 'rotate-180' : ''}`} 
+                                    width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
+                                >
+                                    <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round"/>
+                                </svg>
+                            </button>
+
+                            <div className={`grid transition-all duration-300 ${isSpeakersOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+                                <div className="overflow-hidden">
+                                    <div className='flex flex-col gap-4'>
+                                        {dynamicSpeakers.slice(0, limit).map(speaker => (
+                                            <SpeakerItem key={speaker.id} item={speaker} selected={selectedSpeakers} toggle={toggleSpeaker} />
+                                        ))}
+
+                                        {dynamicSpeakers.length > limit && (
+                                            <>
+                                                <div className={`grid transition-all duration-300 ${showAllSpeak ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+                                                    <div className="overflow-hidden">
+                                                        <div className='flex flex-col gap-4 pt-4'>
+                                                            {dynamicSpeakers.slice(limit).map(speaker => (
+                                                                <SpeakerItem key={speaker.id} item={speaker} selected={selectedSpeakers} toggle={toggleSpeaker} />
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <button onClick={() => setShowAllSpeak(!showAllSpeak)} className="mt-2 font-bold hover:text-[#A621F3] flex items-center gap-2 text-sm">
+                                                    {showAllSpeak ? 'Скрыть' : `Еще ${dynamicSpeakers.length - limit}`}
+                                                    <span className={`transform transition-transform duration-300 ${showAllSpeak ? '-rotate-180' : ''}`}>
+                                                        <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                                                            <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round"/>
+                                                        </svg>
+                                                    </span>
+                                                </button>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </aside>
 
                 {/* МЕЙН С КАРТОЧКАМИ */}
@@ -317,7 +326,15 @@ const Webinars = ({seo, webinars, nextCursor, type}) => {
                             return (
                                 <Link href={route('webinar.show', webinar.id)} key={webinar.id} className='flex flex-col justify-between gap-2 group cursor-pointer animate-in fade-in slide-in-from-bottom-4 duration-500'>
                                     <div className='flex flex-col gap-4 '>
-                                        <div className='relative rounded-2xl overflow-hidden aspect-video bg-gray-100'>
+                                        <div className='relative rounded-2xl overflow-hidden aspect-video bg-gray-100 md:h-[300px] lg:h-[200px] xl:h-[250px]'>
+                                            {webinar.tag !== null ? (
+                                                <div className='flex flex-col px-2 py-1 rounded-2xl gap-2 z-10 absolute right-2.5 top-2.5 w-fit max-w-[calc(100%-20px)] bg-white/90 backdrop-blur-sm'>
+                                                    <span className='font-medium line-clamp-1'>{webinar.tag}</span>
+                                                </div>
+                                                ) : (
+                                                    null
+                                                )
+                                            }
                                             {webinar.preview_url === null ? (
                                                 <div className='absolute h-full w-full bg-gray-400'></div>
                                             ) : (

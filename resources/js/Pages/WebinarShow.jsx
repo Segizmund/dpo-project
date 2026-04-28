@@ -95,60 +95,54 @@ const WebinarShow = ({ seo, webinar }) => {
                     <div>
                         <h2 className='text-2xl font-bold'>{webinar.name}</h2>
                     </div>
-                    
+
                     {webinar.description && (
                         <div className='flex flex-col gap-3'>
                             <h3 className='text-xl font-bold' >Описание:</h3>
                             <p className='text-gray-700 ps-2.5'>{webinar.description}</p>
                         </div>
                     )}
-                    
-                    <div className='flex flex-col gap-2'>
-                        {webinar.start_date && webinar.end_date && (
-                            <div>
-                                <span className='font-medium'>Длительность: </span>
-                                <span>{rangeDate(webinar.start_date, webinar.end_date)}</span>
-                            </div>
-                        )}
-                        
-                        {webinar.price !== undefined && webinar.price !== null && (
-                            <div>
-                                <span className='font-medium'>Стоимость: </span>
-                                <span className='font-semibold'>{webinar.price} ₽</span>
-                            </div>
-                        )}
-                        
-                        {webinar.is_free && (
-                            <div>
-                                <span className='text-green-600 font-semibold'>Бесплатно</span>
-                            </div>
-                        )}
-                        
-                        {webinar.format_name && (
-                            <div>
-                                <span className='font-medium'>Формат: </span>
-                                <span>{webinar.format_name}</span>
-                            </div>
-                        )}
-                        
-                        {webinar.certificate_type_name && (
-                            <div>
-                                <span className='font-medium'>Сертификат: </span>
-                                <span>{webinar.certificate_type_name}</span>
-                            </div>
-                        )}
-                    </div>
-                    
-                    {webinar.modules && webinar.modules.length > 0 && (
-                        <div className='mt-4'>
-                            <h3 className='text-xl font-bold mb-3'>Программа курса</h3>
-                            <div className='flex flex-col gap-2'>
-                                {webinar.modules.map((module, index) => (
-                                    <div key={module.id} className='p-3 bg-gray-50 rounded-lg'>
-                                        <span className='font-medium'>{index + 1}. {module.name}</span>
+
+                    {webinar.speakers && (
+                        <div className='flex flex-col gap-5'>
+                            <h3 className='text-xl font-bold' >{webinar.speakers.length > 1 ? 'Спикеры:' : 'Спикер:'}</h3>
+                            {webinar.speakers.map(speaker => (
+                                <div key={speaker.id} className='flex flex-col gap-2 ps-2.5'>
+                                    <div className='flex items-center gap-2'>
+                                        <span className='font-bold'>Имя спикера:</span>
+                                        <span>{speaker.first_name} {speaker.last_name}</span>
                                     </div>
-                                ))}
-                            </div>
+                                    <div className='flex items-center gap-2'>
+                                        <span className='font-bold'>Почта:</span>
+                                        <a href={`mailto:${speaker.email}`} className='hover:text-[#A621F3] transition duration-300 ease-linear hover:underline'>{speaker.email}</a>
+                                    </div>
+                                    <div className='flex items-center gap-2'>
+                                        <span className='font-bold'>Должность:</span>
+                                        <span>{speaker.title}</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                    
+                    
+                    {webinar.start_date && webinar.end_date && (
+                        <div>
+                            <span className='font-medium'>Длительность: </span>
+                            <span>{rangeDate(webinar.start_date, webinar.end_date)}</span>
+                        </div>
+                    )}
+                    
+                    {webinar.price !== undefined && webinar.price !== null && (
+                        <div>
+                            <span className='font-medium'>Стоимость: </span>
+                            <span className='font-semibold'>{webinar.price} ₽</span>
+                        </div>
+                    )}
+                    
+                    {webinar.is_free && (
+                        <div>
+                            <span className='text-green-600 font-semibold'>Бесплатно</span>
                         </div>
                     )}
                     
