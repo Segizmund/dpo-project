@@ -230,7 +230,7 @@ const Webinars = ({seo, webinars, nextCursor, type}) => {
                             </button>
 
                             <div className={`grid transition-all duration-300 ease-in-out ${isCatsOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
-                                <div className="overflow-hidden">
+                                <div className="overflow-hidden px-2.5">
                                     <div className='flex flex-col gap-4'>
                                         {dynamicCategories.slice(0, limit).map(cat => (
                                             <CategoryItem key={cat.id} item={cat} selected={selectedCategories} toggle={toggleCategory} />
@@ -278,7 +278,7 @@ const Webinars = ({seo, webinars, nextCursor, type}) => {
                             </button>
 
                             <div className={`grid transition-all duration-300 ${isSpeakersOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
-                                <div className="overflow-hidden">
+                                <div className="overflow-hidden px-2.5">
                                     <div className='flex flex-col gap-4'>
                                         {dynamicSpeakers.slice(0, limit).map(speaker => (
                                             <SpeakerItem key={speaker.id} item={speaker} selected={selectedSpeakers} toggle={toggleSpeaker} />
